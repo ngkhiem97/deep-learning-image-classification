@@ -182,12 +182,12 @@ class FullyConnectedLayer(Layer):
         self.setBiases(self.getBiases() - learning_rate * biases_update)
 
 class ConvLayer(Layer):
-    def __init__(self, filters, kernel_size, strides=1, padding=0):
+    def __init__(self, filters, kernel_size, stride=1, padding=0):
         super().__init__()
         self.filters = filters
         self.kernel_size = kernel_size
         self.kernel = self.init_kernel()
-        self.strides = strides
+        self.stride = stride
         self.padding = padding
 
     def init_kernel(self):
@@ -206,41 +206,36 @@ class ConvLayer(Layer):
         return self.getPrevOut()
 
     def convolve(self, dataIn):
-        return np.array([self.convolve2D(dataIn[i], self.kernel, self.padding, self.strides) for i in range(len(dataIn))])
+        return np.array([self.convolve2D(dataIn[i], self.kernel, self.padding, self.stride) for i in range(len(dataIn))])
 
-    def convolve2D(self, image, kernel, padding=0, strides=1):
+    def convolve2D(self, dataIn, kernel, padding=0, stride=1):
         kernalHeight = kernel.shape[0]
         kernalWidth = kernel.shape[1]
-        imgHeight = image.shape[0]
-        imgWidth = image.shape[1]
+        dataHeight = dataIn.shape[0]
+        dataWidth = dataIn.shape[1]
 
         # Define Output Dimensions
-        outputWidth = int(((imgHeight - kernalHeight + 2 * padding) / strides) + 1)
-        outputHeight = int(((imgWidth - kernalWidth + 2 * padding) / strides) + 1)
-        output = np.zeros((outputWidth, outputHeight))
+        outputWidth = int(((dataWidth - kernalWidth + 2 * padding) / stride) + 1)
+        outputHeight = int(((dataHeight - kernalHeight + 2 * padding) / stride) + 1)
+        output = np.zeros((outputHeight, outputWidth))
 
         # Apply Padding
         if padding != 0:
-            imagePadded = np.zeros((image.shape[0] + padding*2, image.shape[1] + padding*2))
-            imagePadded[int(padding):int(-1 * padding), int(padding):int(-1 * padding)] = image
+            dataInPadded = np.zeros((dataIn.shape[0] + padding*2, dataIn.shape[1] + padding*2))
+            dataInPadded[int(padding):int(-1 * padding), int(padding):int(-1 * padding)] = dataIn
         else:
-            imagePadded = image
+            dataInPadded = dataIn
 
-        # Iterate through image
-        for y in range(image.shape[1]):
-            # Exit Convolution
-            if y > image.shape[1] - kernalWidth:
+        for y in range(dataIn.shape[1]):
+            if y > dataIn.shape[1] - kernalWidth:
                 break
-            # Only Convolve if y has gone down by the specified Strides
-            if y % strides == 0:
-                for x in range(image.shape[0]):
-                    # Go to next row once kernel is out of bounds
-                    if x > image.shape[0] - kernalHeight:
+            if y % stride == 0:
+                for x in range(dataIn.shape[0]):
+                    if x > dataIn.shape[0] - kernalHeight:
                         break
                     try:
-                        # Only Convolve if x has moved by the specified Strides
-                        if x % strides == 0:
-                            output[x, y] = (kernel * imagePadded[x: x + kernalHeight, y: y + kernalWidth]).sum()
+                        if x % stride == 0:
+                            output[x, y] = (kernel * dataInPadded[x: x + kernalHeight, y: y + kernalWidth]).sum()
                     except:
                         break
 
@@ -249,6 +244,54 @@ class ConvLayer(Layer):
     def gradient(self):
         pass
 
+class PoolingLayer(Layer):
+    def __init__(self, size, stride=1):
+        super().__init__()
+        self.size = size
+        self.stride = stride
+
+    def forward(self,dataIn):
+        self.setPrevIn(dataIn)
+        self.setPrevOut(self.pool(dataIn))
+        return self.getPrevOut()
+
+    def pool(self, dataIn):
+        return np.array([self.pool2D(dataIn[i]) for i in range(len(dataIn))])
+    
+    def pool2D(self, dataIn):
+        dataHeight = dataIn.shape[0]
+        dataWidth = dataIn.shape[1]
+
+        outputWidth = int(((dataWidth - self.size) / self.stride) + 1)
+        outputHeight = int(((dataHeight - self.size) / self.stride) + 1)
+        output = np.zeros((outputHeight, outputWidth))
+
+        for y in range(0, dataHeight - self.size + 1, self.stride):
+            for x in range(0, dataWidth - self.size + 1, self.stride):
+                y_ = int(y / self.stride)
+                x_ = int(x / self.stride)
+                output[y_, x_] = dataIn[y:y+self.size, x:x+self.size].max()
+
+        return output
+    
+    def gradient(self):
+        pass
+
+class FlattenLayer(Layer):
+    def __init__(self):
+        super().__init__()
+
+    def forward(self,dataIn):
+        self.setPrevIn(dataIn)
+        self.setPrevOut(self.flatten(dataIn))
+        return self.getPrevOut()
+
+    def flatten(self, dataIn):
+        return np.array([dataIn[i].flatten() for i in range(len(dataIn))])
+
+    def gradient(self):
+        pass
+        
 # Objective functions
 class SquaredError():
     #Input: Y is an N by K matrix of target values.
