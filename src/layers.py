@@ -296,6 +296,22 @@ class PoolingLayer(Layer):
     
     def gradient(self):
         pass
+ 
+    def backward(self, gradIn):
+        return np.array([self.backwardRow(data, grad_i) for data, grad_i in zip(self.getPrevIn(), gradIn)])
+
+    def backwardRow(self, data, gradIn):
+        dataHeight = data.shape[0]
+        dataWidth = data.shape[1]
+        output = np.zeros((dataHeight, dataWidth))
+
+        for y in range(gradIn.shape[1]):
+            for x in range(gradIn.shape[0]):
+                grid = data[y*self.stride:y*self.stride+self.size, x*self.stride:x*self.stride+self.size]
+                maxLoc = np.unravel_index(grid.argmax(), (self.size, self.size))
+                output[y*self.stride+maxLoc[0], x*self.stride+maxLoc[1]] = gradIn[y, x]
+
+        return output
 
 class FlattenLayer(Layer):
     def __init__(self):
@@ -308,9 +324,12 @@ class FlattenLayer(Layer):
 
     def flatten(self, dataIn):
         return np.array([dataIn[i].flatten() for i in range(len(dataIn))])
-
+    
     def gradient(self):
         pass
+ 
+    def backward(self, gradIn):
+        return gradIn.reshape(self.getPrevIn().shape)
         
 # Objective functions
 class SquaredError():

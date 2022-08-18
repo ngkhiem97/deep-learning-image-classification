@@ -1,3 +1,4 @@
+from traceback import print_tb
 import src.layers as layers
 import numpy as np
 
@@ -34,11 +35,30 @@ expectedResult = np.array([[[7, 7], [6, 6]]])
 print("Pooling layer's result:", result)
 assert np.array_equal(result, expectedResult)
 
+grad = np.array([[[-2, 0],
+                  [6, -2]]])
+poolingResult = poolingLayer.backward(grad)
+expectedResult = np.array([[[ 0, -2,  0,  0,  0,  0],
+                            [ 0,  0,  0,  0,  0,  0],
+                            [ 0,  0,  0,  0,  0,  0],
+                            [ 0,  0,  0,  0, -2,  0],
+                            [ 0,  6,  0,  0,  0,  0],
+                            [ 0,  0,  0,  0,  0,  0]]])
+print("Pooling layer's gradient:\n", poolingResult)
+assert np.array_equal(poolingResult, expectedResult)
+
 flattenLayer = layers.FlattenLayer()
 result = flattenLayer.forward(result)
 expectedResult = np.array([[7, 7, 6, 6]])
 print("Flatten layer's result:", result)
 assert np.array_equal(result, expectedResult)
+
+grad = np.array([[-2, 0, 6, -2]])
+flattenResult = flattenLayer.backward(grad)
+expectedResult = np.array([[[-2, 0],
+                            [6, -2]]])
+print("Flatten layer's gradient:", flattenResult)
+assert np.array_equal(flattenResult, expectedResult)
 
 e = np.array([[[0, -2, 0, 0, 0, 0],
                [0, 0, 0, 0, 0, 0],
