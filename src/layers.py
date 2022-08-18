@@ -182,30 +182,72 @@ class FullyConnectedLayer(Layer):
         self.setBiases(self.getBiases() - learning_rate * biases_update)
 
 class ConvLayer(Layer):
-    def __init__(self, filters, kernel_size, strides=(1, 1)):
+    def __init__(self, filters, kernel_size, strides=1, padding=0):
         super().__init__()
         self.filters = filters
         self.kernel_size = kernel_size
+        self.kernel = self.init_kernel()
         self.strides = strides
+        self.padding = padding
+
+    def init_kernel(self):
+        bound = np.sqrt(6/(self.filters*self.kernel_size[0]*self.kernel_size[1]))
+        return np.random.uniform(-bound, bound, (self.filters, self.kernel_size[0], self.kernel_size[1]))
+
+    def getKernel(self):
+        return self.kernel
+    
+    def setKernel(self, kernel):
+        self.kernel = kernel
 
     def forward(self,dataIn):
         self.setPrevIn(dataIn)
         self.setPrevOut(self.convolve(dataIn))
         return self.getPrevOut()
-    
+
     def convolve(self, dataIn):
-        out = np.empty((0, self.filters.shape[0]))
-        for i in range(0, dataIn.shape[0]):
-            out = np.append(out, self.convolve_single(dataIn[i]), axis=0)
-        return out
+        return np.array([self.convolve2D(dataIn[i], self.kernel, self.padding, self.strides) for i in range(len(dataIn))])
 
-    def convolve_single(self, dataIn):
-        out = np.empty((0, self.filters.shape[0]))
-        for i in range(0, dataIn.shape[0] - self.kernel_size[0] + 1, self.strides[0]):
-            for j in range(0, dataIn.shape[1] - self.kernel_size[1] + 1, self.strides[1]):
-                out = np.append(out, self.convolve_single_single(dataIn[i:i+self.kernel_size[0], j:j+self.kernel_size[1]]), axis=0)
-        return out
+    def convolve2D(self, image, kernel, padding=0, strides=1):
+        kernalHeight = kernel.shape[0]
+        kernalWidth = kernel.shape[1]
+        imgHeight = image.shape[0]
+        imgWidth = image.shape[1]
 
+        # Define Output Dimensions
+        outputWidth = int(((imgHeight - kernalHeight + 2 * padding) / strides) + 1)
+        outputHeight = int(((imgWidth - kernalWidth + 2 * padding) / strides) + 1)
+        output = np.zeros((outputWidth, outputHeight))
+
+        # Apply Padding
+        if padding != 0:
+            imagePadded = np.zeros((image.shape[0] + padding*2, image.shape[1] + padding*2))
+            imagePadded[int(padding):int(-1 * padding), int(padding):int(-1 * padding)] = image
+        else:
+            imagePadded = image
+
+        # Iterate through image
+        for y in range(image.shape[1]):
+            # Exit Convolution
+            if y > image.shape[1] - kernalWidth:
+                break
+            # Only Convolve if y has gone down by the specified Strides
+            if y % strides == 0:
+                for x in range(image.shape[0]):
+                    # Go to next row once kernel is out of bounds
+                    if x > image.shape[0] - kernalHeight:
+                        break
+                    try:
+                        # Only Convolve if x has moved by the specified Strides
+                        if x % strides == 0:
+                            output[x, y] = (kernel * imagePadded[x: x + kernalHeight, y: y + kernalWidth]).sum()
+                    except:
+                        break
+
+        return output
+
+    def gradient(self):
+        pass
 
 # Objective functions
 class SquaredError():
