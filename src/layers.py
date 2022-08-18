@@ -214,30 +214,21 @@ class ConvLayer(Layer):
         dataHeight = dataIn.shape[0]
         dataWidth = dataIn.shape[1]
 
-        # Define Output Dimensions
         outputWidth = int(((dataWidth - kernalWidth + 2 * padding) / stride) + 1)
         outputHeight = int(((dataHeight - kernalHeight + 2 * padding) / stride) + 1)
         output = np.zeros((outputHeight, outputWidth))
 
-        # Apply Padding
         if padding != 0:
             dataInPadded = np.zeros((dataIn.shape[0] + padding*2, dataIn.shape[1] + padding*2))
             dataInPadded[int(padding):int(-1 * padding), int(padding):int(-1 * padding)] = dataIn
         else:
             dataInPadded = dataIn
 
-        for y in range(dataIn.shape[1]):
-            if y > dataIn.shape[1] - kernalWidth:
-                break
-            if y % stride == 0:
-                for x in range(dataIn.shape[0]):
-                    if x > dataIn.shape[0] - kernalHeight:
-                        break
-                    try:
-                        if x % stride == 0:
-                            output[x, y] = (kernel * dataInPadded[x: x + kernalHeight, y: y + kernalWidth]).sum()
-                    except:
-                        break
+        for y in range(0, dataHeight - kernalHeight + 1, self.stride):
+            for x in range(0, dataWidth - kernalWidth + 1, self.stride):
+                y_ = int(y / self.stride)
+                x_ = int(x / self.stride)
+                output[y_, x_] = (kernel * dataInPadded[y: y + kernalHeight, x: x + kernalWidth]).sum()
 
         return output
 
