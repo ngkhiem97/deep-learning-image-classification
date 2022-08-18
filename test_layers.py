@@ -1,4 +1,3 @@
-from traceback import print_tb
 import src.layers as layers
 import numpy as np
 
