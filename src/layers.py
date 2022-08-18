@@ -190,6 +190,16 @@ class ConvLayer(Layer):
         self.stride = stride
         self.padding = padding
 
+        # accumulators for Adam optimizer
+        self.weights_s = 0
+        self.weights_r = 0
+        self.biases_s = 0
+        self.biases_r = 0
+
+        self.decay_1 = 0.9
+        self.decay_2 = 0.999
+        self.stability = 10e-8
+
     def init_kernel(self):
         bound = np.sqrt(6/(self.filters*self.kernel_size[0]*self.kernel_size[1]))
         return np.random.uniform(-bound, bound, (self.filters, self.kernel_size[0], self.kernel_size[1]))
@@ -214,20 +224,20 @@ class ConvLayer(Layer):
 
     def forward(self,dataIn):
         self.setPrevIn(dataIn)
-        self.setPrevOut(self.convolve(dataIn))
+        self.setPrevOut(self.convolve(dataIn, self.kernel, self.padding, self.stride))
         return self.getPrevOut()
 
-    def convolve(self, dataIn):
-        return np.array([self.convolve2D(dataIn[i], self.kernel, self.padding, self.stride) for i in range(len(dataIn))])
+    def convolve(self, dataIn, kernel, padding, stride):
+        return np.array([self.convolve2D(dataIn[i], kernel, padding, stride) for i in range(len(dataIn))])
 
     def convolve2D(self, dataIn, kernel, padding=0, stride=1):
-        kernalHeight = kernel.shape[0]
-        kernalWidth = kernel.shape[1]
+        kernelHeight = kernel.shape[0]
+        kernelWidth = kernel.shape[1]
         dataHeight = dataIn.shape[0]
         dataWidth = dataIn.shape[1]
 
-        outputWidth = int(((dataWidth - kernalWidth + 2 * padding) / stride) + 1)
-        outputHeight = int(((dataHeight - kernalHeight + 2 * padding) / stride) + 1)
+        outputWidth = int(((dataWidth - kernelWidth + 2 * padding) / stride) + 1)
+        outputHeight = int(((dataHeight - kernelHeight + 2 * padding) / stride) + 1)
         output = np.zeros((outputHeight, outputWidth))
 
         if padding != 0:
@@ -238,12 +248,23 @@ class ConvLayer(Layer):
 
         for y in range(outputHeight):
             for x in range(outputWidth):
-                output[y, x] = (kernel * dataInPadded[y*self.stride: y*self.stride + kernalHeight, x*self.stride: x*self.stride + kernalWidth]).sum()
+                output[y, x] = (kernel * dataInPadded[y*self.stride: y*self.stride + kernelHeight, x*self.stride: x*self.stride + kernelWidth]).sum()
 
         return output
 
     def gradient(self):
-        pass
+        return np.array([self.kernel.T for data in self.getPrevIn()])
+ 
+    def backward(self, gradIn):
+        grad = self.gradient()
+        return np.array([self.convolve2D(np.pad(gradIn_i, 2, constant_values=0), grad_i) for gradIn_i, grad_i in zip(gradIn, grad)])
+
+    def updateKernel(self, gradIn, epoch, learning_rate = 0.0001):
+        dJdw = np.array([self.convolve2D(data, grad, padding=0, stride=1) for data, grad in zip(self.getPrevIn(), gradIn)]).sum()
+        self.weights_s = self.decay_1 * self.weights_s + (1 - self.decay_1) * dJdw
+        self.weights_r = self.decay_2 * self.weights_r + (1 - self.decay_2) * dJdw * dJdw
+        weights_update = (self.weights_s/(1-self.decay_1**(epoch+1))) / (np.sqrt(self.weights_r/(1-self.decay_2**(epoch+1))) + self.stability)
+        self.setKernel(self.getKernel() - learning_rate * weights_update)
 
 class PoolingLayer(Layer):
     def __init__(self, size, stride=1):

@@ -40,20 +40,28 @@ expectedResult = np.array([[7, 7, 6, 6]])
 print("Flatten layer's result:", result)
 assert np.array_equal(result, expectedResult)
 
-e = np.array([[[0, 0, 0, 0, 0, 0, 0, 0],
-               [0, 0, -2, 0, 0, 0, 0, 0],
-               [0, 0, 0, 0, 0, 0, 0, 0],
-               [0, 0, 0, 0, 0, 0, 0, 0],
-               [0, 0, 0, 0, 0, -2, 0, 0],
-               [0, 0, 6, 0, 0, 0, 0, 0],
-               [0, 0, 0, 0, 0, 0, 0, 0],
-               [0, 0, 0, 0, 0, 0, 0, 0]]])
+e = np.array([[[0, -2, 0, 0, 0, 0],
+               [0, 0, 0, 0, 0, 0],
+               [0, 0, 0, 0, 0, 0],
+               [0, 0, 0, 0, -2, 0],
+               [0, 6, 0, 0, 0, 0],
+               [0, 0, 0, 0, 0, 0]]])
 
-kernel = np.array([[2, 2, 1],
+kernel_T = np.array([[2, 2, 1],
                    [-1, -1, 0],
                    [2, 0, 2]])
 
-convLayer.setKernel(kernel)
-convLayer.setPadding(1)
-result = convLayer.forward(e)
+result = convLayer.backward(e)
+expectedResult = np.array([[[ 0, -4,  0, -4,  0,  0,  0,  0],
+                            [ 0,  0,  2,  2,  0,  0,  0,  0],
+                            [ 0, -2, -4, -4,  0,  0,  0,  0],
+                            [ 0,  0,  0,  0, -4,  0, -4,  0],
+                            [ 0, 12,  0, 12,  0,  2,  2,  0],
+                            [ 0,  0, -6, -6, -2, -4, -4,  0],
+                            [ 0,  6, 12, 12,  0,  0,  0,  0],
+                            [ 0,  0,  0,  0,  0,  0,  0,  0]]])
 print("Convolution layer's result:\n", result)
+assert np.array_equal(result, expectedResult)
+
+convLayer.updateKernel(e, 0)
+print("Convolution layer's kernel:\n", convLayer.kernel)
