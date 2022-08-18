@@ -39,3 +39,21 @@ result = flattenLayer.forward(result)
 expectedResult = np.array([[7, 7, 6, 6]])
 print("Flatten layer's result:", result)
 assert np.array_equal(result, expectedResult)
+
+e = np.array([[[0, 0, 0, 0, 0, 0, 0, 0],
+               [0, 0, -2, 0, 0, 0, 0, 0],
+               [0, 0, 0, 0, 0, 0, 0, 0],
+               [0, 0, 0, 0, 0, 0, 0, 0],
+               [0, 0, 0, 0, 0, -2, 0, 0],
+               [0, 0, 6, 0, 0, 0, 0, 0],
+               [0, 0, 0, 0, 0, 0, 0, 0],
+               [0, 0, 0, 0, 0, 0, 0, 0]]])
+
+kernel = np.array([[2, 2, 1],
+                   [-1, -1, 0],
+                   [2, 0, 2]])
+
+convLayer.setKernel(kernel)
+convLayer.setPadding(1)
+result = convLayer.forward(e)
+print("Convolution layer's result:\n", result)

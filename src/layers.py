@@ -199,6 +199,18 @@ class ConvLayer(Layer):
     
     def setKernel(self, kernel):
         self.kernel = kernel
+    
+    def getPadding(self):
+        return self.padding
+        
+    def setPadding(self, padding):
+        self.padding = padding
+    
+    def getStride(self):
+        return self.stride
+    
+    def setStride(self, stride):
+        self.stride = stride
 
     def forward(self,dataIn):
         self.setPrevIn(dataIn)
@@ -224,11 +236,9 @@ class ConvLayer(Layer):
         else:
             dataInPadded = dataIn
 
-        for y in range(0, dataHeight - kernalHeight + 1, self.stride):
-            for x in range(0, dataWidth - kernalWidth + 1, self.stride):
-                y_ = int(y / self.stride)
-                x_ = int(x / self.stride)
-                output[y_, x_] = (kernel * dataInPadded[y: y + kernalHeight, x: x + kernalWidth]).sum()
+        for y in range(outputHeight):
+            for x in range(outputWidth):
+                output[y, x] = (kernel * dataInPadded[y*self.stride: y*self.stride + kernalHeight, x*self.stride: x*self.stride + kernalWidth]).sum()
 
         return output
 
@@ -257,11 +267,9 @@ class PoolingLayer(Layer):
         outputHeight = int(((dataHeight - self.size) / self.stride) + 1)
         output = np.zeros((outputHeight, outputWidth))
 
-        for y in range(0, dataHeight - self.size + 1, self.stride):
-            for x in range(0, dataWidth - self.size + 1, self.stride):
-                y_ = int(y / self.stride)
-                x_ = int(x / self.stride)
-                output[y_, x_] = dataIn[y:y+self.size, x:x+self.size].max()
+        for y in range(outputHeight):
+            for x in range(outputWidth):
+                output[y, x] = dataIn[y*self.stride:y*self.stride+self.size, x*self.stride:x*self.stride+self.size].max()
 
         return output
     
