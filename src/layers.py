@@ -330,6 +330,32 @@ class FlattenLayer(Layer):
  
     def backward(self, gradIn):
         return gradIn.reshape(self.getPrevIn().shape)
+    
+class DropoutLayer(Layer):
+    def __init__(self, keep_prob):
+        super().__init__()
+        self.keep_prob = keep_prob
+
+    def forward(self, dataIn, test=True, epoch=1):
+        self.setPrevIn(dataIn)
+        if (test):
+            self.setPrevOut(dataIn)
+            return dataIn
+        else:
+            np.random.seed(epoch)
+            self.dropOutKey = np.random.rand(dataIn.shape[0], dataIn.shape[1]) < self.keep_prob
+            dataOut = np.multiply(dataIn, self.dropOutKey)
+            dataOut = dataOut / self.keep_prob
+            self.setPrevOut(dataOut)
+            return dataOut
+
+    def gradient(self):
+        tensor = np.ones_like(self.dropOutKey) / self.keep_prob
+        return tensor
+
+    def backward(self, gradIn):
+        gradOut = gradIn * self.gradient()
+        return gradOut
         
 # Objective functions
 class SquaredError():
