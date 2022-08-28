@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 import cv2
+import tqdm
 import numpy as np
 import src.layers as layers
 
@@ -43,6 +44,8 @@ def train_model(layers_, X_train, Y_train, X_val, Y_val, filename="default", lea
     loss_train = []
     loss_val = []
     batch_size = 25
+
+    pbar = tqdm(total = max_epochs, desc='Training Model', unit="Epoch")
     while (epoch < max_epochs):
         # shuffle data
         indices = np.random.permutation(X_train.shape[0])
@@ -87,8 +90,12 @@ def train_model(layers_, X_train, Y_train, X_val, Y_val, filename="default", lea
         val_eval = layers_[-1].eval(Y_val, h)
         loss_val.append(val_eval)
 
-        print("Epoch: %d, Train Loss: %f, Val Loss: %f" % (epoch, eval, val_eval))
+        # pbar.set_description(f"Validation loss: {val_eval}")
+
+        # print("Epoch: %d, Train Loss: %f, Val Loss: %f" % (epoch, eval, val_eval))
         epoch += 1
+        pbar.update(1)
+    pbar.close()
 
     # plot log loss
     plt.xlabel("Epoch")
