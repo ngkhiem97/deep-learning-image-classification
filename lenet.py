@@ -26,13 +26,13 @@ crossEntropyLoss = layers.CrossEntropy()
 
 lenet = [convLayer1, reluLayer1, poolingLayer1, flattenLayer1, fcLayer1, dropoutLayer1, softmaxLayer, crossEntropyLoss]
 
-# util.train_model(lenet, X_train, Y_train_encoded, X_test, Y_test_encoded, "lenet", 
-#                  learning_rate = 0.001, 
-#                  max_epochs = 10, 
-#                  batch_size = 25,
-#                  condition = 10e-10,
-#                  skip_first_layer=False)
+util.train_model(lenet, X_train[:100], Y_train_encoded[:100], X_test[:100], Y_test_encoded[:100], "lenet", 
+                 learning_rate = 0.001, 
+                 max_epochs = 10, 
+                 batch_size = 25,
+                 condition = 10e-10,
+                 skip_first_layer=False)
 
-h = util.forward(lenet, X_train[:2])
-print(h.shape)
+# h = util.forward(lenet, X_train[:2])
+# print(h.shape)
 

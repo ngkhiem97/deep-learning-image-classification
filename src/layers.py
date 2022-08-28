@@ -62,19 +62,25 @@ class LinearLayer(Layer):
 
     def backward(self, gradIn):
         return gradIn
-
+        
 class ReluLayer(Layer):
     def __init__(self):
         super().__init__()
 
     def forward(self,dataIn):
         self.setPrevIn(dataIn)
-        self.setPrevOut(np.maximum(0,dataIn))
-        return self.getPrevOut()
+        dataOut = np.maximum(0, dataIn)
+        self.setPrevOut(dataOut)
+        return dataOut
 
     def gradient(self):
-        diag = np.where(self.getPrevOut() > 0, 1, 0)
-        return np.eye(len(self.getPrevOut()[0])) * diag[:, np.newaxis]
+        grad = np.where(self.getPrevOut() > 0, 1, 0)
+        tensor = grad
+        return tensor
+
+    def backward(self, gradIn):
+        gradOut = gradIn * self.gradient()
+        return gradOut
 
 class LogisticSigmoidLayer(Layer):
     def __init__(self):
@@ -336,7 +342,7 @@ class DropoutLayer(Layer):
         super().__init__()
         self.keep_prob = keep_prob
 
-    def forward(self, dataIn, test=True, epoch=1):
+    def forward(self, dataIn, test=False, epoch=1):
         self.setPrevIn(dataIn)
         if (test):
             self.setPrevOut(dataIn)
