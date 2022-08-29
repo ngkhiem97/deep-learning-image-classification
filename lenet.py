@@ -32,16 +32,16 @@ fcLayer5 = layers.FullyConnectedLayer(84, 10, xavier_init = True)
 softmaxLayer = layers.SoftmaxLayer()
 crossEntropyLoss = layers.CrossEntropy()
 
-lenet = [convLayer1, tanhLayer1, poolingLayer1, flattenLayer, 
-         convLayer2, reluLayer2, poolingLayer2, 
+lenet = [convLayer1, tanhLayer1, poolingLayer1,
+         convLayer2, reluLayer2, poolingLayer2, flattenLayer, 
          fcLayer3, dropoutLayer3, tanhLayer3, 
          fcLayer4, dropoutLayer4, tanhLayer4, 
          fcLayer5, softmaxLayer, crossEntropyLoss]
 
-util.train_model(lenet, X_train, Y_train_encoded, X_test, Y_test_encoded, "lenet_xavier", 
+util.train_model(lenet, X_train[:100], Y_train_encoded[:100], X_test[:10], Y_test_encoded[:10], "lenet_xavier", 
                  learning_rate = 0.01, 
-                 max_epochs = 10, 
-                 batch_size = 1000,
+                 max_epochs = 20, 
+                 batch_size = 10,
                  condition = 10e-10,
                  skip_first_layer=False)
 

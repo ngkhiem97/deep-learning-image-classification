@@ -49,9 +49,7 @@ def train_model(layers_, X_train, Y_train, X_val, Y_val, filename="default", lea
     lastEval = 0
     loss_train = []
     loss_val = []
-    batch_size = 25
 
-    pbar = tqdm(total = max_epochs, desc='Training Model', unit="Epoch")
     while (epoch < max_epochs):
         # shuffle data
         indices = np.random.permutation(X_train.shape[0])
@@ -59,6 +57,8 @@ def train_model(layers_, X_train, Y_train, X_val, Y_val, filename="default", lea
         Y_train = Y_train[indices]
 
         # do batch training
+        num_batches = int(X_train.shape[0] / batch_size)
+        pbar = tqdm(total = num_batches, desc='Training Model', unit="Batch")
         for i in range(0, X_train.shape[0], batch_size):
             # get batch
             X_batch = X_train[i:i+batch_size]
@@ -81,6 +81,8 @@ def train_model(layers_, X_train, Y_train, X_val, Y_val, filename="default", lea
                     layer.updateKernel(grad, epoch, learning_rate)
                 grad = newGrad
 
+            pbar.update(1)
+
         # evaluate loss for training
         h = forward(layers_, X_train)
         eval = layers_[-1].eval(Y_train, h)
@@ -98,9 +100,10 @@ def train_model(layers_, X_train, Y_train, X_val, Y_val, filename="default", lea
 
         # pbar.set_description(f"Validation loss: {val_eval}")
 
-        # print("Epoch: %d, Train Loss: %f, Val Loss: %f" % (epoch, eval, val_eval))
+        print("Epoch: %d, Train Loss: %f, Val Loss: %f" % (epoch, eval, val_eval))
+        calculate_accuracy(X_train, Y_train, layers_, "Training")
+        calculate_accuracy(X_val, Y_val, layers_, "Validation")
         epoch += 1
-        pbar.update(1)
 
     calculate_accuracy(X_train, Y_train, layers_, type = "Training")
     calculate_accuracy(X_val, Y_val, layers_, type = "Validation")
