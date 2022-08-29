@@ -31,6 +31,12 @@ def one_hot(y, n_classes):
 def one_hot_array(y, n_classes):
     return np.array([one_hot(y_i, n_classes) for y_i in y])
 
+def decode(y_pred):
+    return np.array([np.argmax(y_i) for y_i in y_pred]) 
+
+def accuracy(y_true, y_pred):
+    return np.mean(y_true == y_pred)
+
 def forward(layers, X):
     h = X
     for layer in layers[:-1]:
@@ -68,13 +74,16 @@ def train_model(layers_, X_train, Y_train, X_val, Y_val, filename="default", lea
                 newGrad = layer.backward(grad)
                 if (isinstance(layer, layers.FullyConnectedLayer)):
                     layer.updateWeights(grad, epoch, learning_rate)
-                if (isinstance(layer, layers.ConvLayer)):
+                if (isinstance(layer, layers.Conv2DLayer)) or (isinstance(layer, layers.Conv3DLayer)):
                     layer.updateKernel(grad, epoch, learning_rate)
                 grad = newGrad
 
         # evaluate loss for training
         h = forward(layers_, X_train)
         eval = layers_[-1].eval(Y_train, h)
+        h_decoded = decode(h)
+        Y_train_decoded = decode(Y_train)
+        accuracy_train = accuracy(Y_train_decoded, h_decoded)
         loss_train.append(eval)
 
         # finish training if change in loss is too small
@@ -85,9 +94,12 @@ def train_model(layers_, X_train, Y_train, X_val, Y_val, filename="default", lea
         # evaluate loss for validation
         h = forward(layers_, X_val)
         val_eval = layers_[-1].eval(Y_val, h)
+        h_decoded = decode(h)
+        Y_val_decoded = decode(Y_val)
+        accuracy_test = accuracy(Y_val_decoded, h_decoded)
         loss_val.append(val_eval)
 
-        print("Epoch: %d, Train Loss: %f, Val Loss: %f" % (epoch, eval, val_eval))
+        print("Epoch: {}, Train Loss: {}, Val Loss: {}, Train Accuracy: {}, Val Accuracy: {}".format(epoch, eval, val_eval, accuracy_train, accuracy_test))
         epoch += 1
 
     # plot log loss

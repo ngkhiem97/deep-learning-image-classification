@@ -62,7 +62,7 @@ class LinearLayer(Layer):
 
     def backward(self, gradIn):
         return gradIn
-        
+
 class ReluLayer(Layer):
     def __init__(self):
         super().__init__()
@@ -113,21 +113,28 @@ class SoftmaxLayer(Layer):
             np.fill_diagonal(grad, row*(1-row))
             tensor = np.append(tensor, grad[np.newaxis], axis = 0)
         return tensor
-
+        
 class TanhLayer(Layer):
     def __init__(self):
         super().__init__()
-
+    
     def forward(self,dataIn):
         self.setPrevIn(dataIn)
-        a = np.exp(dataIn)-np.exp(-dataIn)
-        b = np.exp(dataIn)+np.exp(-dataIn)
-        self.setPrevOut(a/b)
-        return self.getPrevOut()
-    
+        dataInCal = np.where(dataIn > 100, 99, dataIn)
+        dataInCal = np.where(dataInCal < -100, -99, dataInCal)
+        dataOut = (np.exp(dataInCal) - np.exp(-dataInCal)) / (np.exp(dataInCal) + np.exp(-dataInCal))
+        self.setPrevOut(dataOut)
+        return dataOut
+
     def gradient(self):
-        diag = 1 - self.getPrevOut() ** 2 + EPSILON
-        return np.eye(len(self.getPrevOut()[0])) * diag[:, np.newaxis]
+        a = .000000000000001
+        tensor = (1 - self.getPrevOut()**2) + a
+        tensor = np.array(tensor)
+        return tensor
+
+    def backward(self, gradIn):
+        gradOut = gradIn * self.gradient()
+        return gradOut
 
 class FullyConnectedLayer(Layer):
     def __init__(self, sizeIn, sizeOut, xavier_init = True):
@@ -187,7 +194,7 @@ class FullyConnectedLayer(Layer):
         self.setWeights(self.getWeights() - learning_rate * weights_update)
         self.setBiases(self.getBiases() - learning_rate * biases_update)
 
-class ConvLayer(Layer):
+class Conv2DLayer(Layer):
     def __init__(self, filters, kernel_size, stride=1, padding=0):
         super().__init__()
         self.filters = filters
@@ -234,7 +241,7 @@ class ConvLayer(Layer):
         return self.getPrevOut()
 
     def convolve(self, dataIn, kernel, padding, stride):
-        return np.array([self.convolve2D(dataIn[i], kernel, padding, stride) for i in range(len(dataIn))])
+        return np.array([[self.convolve2D(dataIn_i, kernel_i, padding, stride) for kernel_i in kernel] for dataIn_i in dataIn])
 
     def convolve2D(self, dataIn, kernel, padding=0, stride=1):
         kernelHeight = kernel.shape[0]
@@ -259,18 +266,56 @@ class ConvLayer(Layer):
         return output
 
     def gradient(self):
-        return np.array([self.kernel.T for data in self.getPrevIn()])
- 
+        return np.array([np.transpose(self.kernel, (0, 2, 1))]*len(self.getPrevIn()))
+
     def backward(self, gradIn):
         grad = self.gradient()
-        return np.array([self.convolve2D(np.pad(gradIn_i, 2, constant_values=0), grad_i) for gradIn_i, grad_i in zip(gradIn, grad)])
+        return np.array([self.backward2D(grad_i, gradIn_i) for gradIn_i, grad_i in zip(gradIn, grad)])
+        
+    def backward2D(self, grad, gradIn):
+        return np.array([self.convolve2D(np.pad(gradIn_i, grad_i.shape[0]-1, constant_values=0), grad_i) for gradIn_i, grad_i in zip(gradIn, grad)])
 
     def updateKernel(self, gradIn, epoch, learning_rate = 0.0001):
-        dJdw = np.array([self.convolve2D(data, grad, padding=0, stride=1) for data, grad in zip(self.getPrevIn(), gradIn)]).sum()
+        for gradIn_i in gradIn:
+            self.updateKernel2D(gradIn_i, self.getPrevIn(), epoch, learning_rate)
+
+    def updateKernel2D(self, gradIn, dataIn, epoch, learning_rate = 0.0001):
+        dJdw = np.array([[self.convolve2D(data, grad, padding=0, stride=1) for data in dataIn] for grad in gradIn])
+        dJdw = dJdw.reshape(-1, dJdw.shape[-2], dJdw.shape[-1]).sum(axis=0)
         self.weights_s = self.decay_1 * self.weights_s + (1 - self.decay_1) * dJdw
         self.weights_r = self.decay_2 * self.weights_r + (1 - self.decay_2) * dJdw * dJdw
         weights_update = (self.weights_s/(1-self.decay_1**(epoch+1))) / (np.sqrt(self.weights_r/(1-self.decay_2**(epoch+1))) + self.stability)
         self.setKernel(self.getKernel() - learning_rate * weights_update)
+
+class Conv3DLayer(Conv2DLayer):
+    def __init__(self, filters, kernel_size, stride=1, padding=0):
+        super().__init__(filters, kernel_size, stride, padding)
+
+    def convolve(self, dataIn, kernel, padding, stride):
+        return np.array([self.convolve3D(dataIn_i, kernel, padding, stride) for dataIn_i in dataIn])
+
+    def convolve3D(self, dataIn, kernel, padding, stride):
+        arr = np.array([[self.convolve2D(dataIn_i, kernel_i, padding, stride) for kernel_i in kernel] for dataIn_i in dataIn])
+        return arr.reshape(-1, arr.shape[-2], arr.shape[-1])
+
+    def gradient(self):
+        return np.array([self.gradient2D()]*len(self.getPrevIn()))
+
+    def gradient2D(self):
+        arr = np.array([np.transpose(self.kernel, (0, 2, 1))]*len(self.getPrevIn()[0]))
+        return arr.reshape(-1, arr.shape[-2], arr.shape[-1])
+
+    def backward(self, gradIn):
+        grad = self.gradient()
+        return np.array([self.backward2D(grad_i, gradIn_i) for gradIn_i, grad_i in zip(gradIn, grad)])
+        
+    def backward2D(self, grad, gradIn):
+        return np.array([self.convolve2D(np.pad(gradIn_i, grad_i.shape[0]-1, constant_values=0), grad_i) for gradIn_i, grad_i in zip(gradIn, grad)])
+
+    def updateKernel(self, gradIn, epoch, learning_rate = 0.0001):
+        for gradIn_i in gradIn:
+            for dataIn_i in self.getPrevIn():
+                self.updateKernel2D(gradIn_i, dataIn_i, epoch, learning_rate)
 
 class PoolingLayer(Layer):
     def __init__(self, size, stride=1):
@@ -284,6 +329,9 @@ class PoolingLayer(Layer):
         return self.getPrevOut()
 
     def pool(self, dataIn):
+        return np.array([self.pool3D(dataIn[i]) for i in range(len(dataIn))])
+
+    def pool3D(self, dataIn):
         return np.array([self.pool2D(dataIn[i]) for i in range(len(dataIn))])
     
     def pool2D(self, dataIn):
@@ -302,9 +350,12 @@ class PoolingLayer(Layer):
     
     def gradient(self):
         pass
- 
+
     def backward(self, gradIn):
-        return np.array([self.backwardRow(data, grad_i) for data, grad_i in zip(self.getPrevIn(), gradIn)])
+        return np.array([self.backward3D(grad_i, data) for data, grad_i in zip(self.getPrevIn(), gradIn)])
+ 
+    def backward3D(self, gradIn, prevIn):
+        return np.array([self.backwardRow(data, grad_i) for data, grad_i in zip(prevIn, gradIn)])
 
     def backwardRow(self, data, gradIn):
         dataHeight = data.shape[0]

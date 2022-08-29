@@ -1,6 +1,8 @@
 import src.layers as layers
 import numpy as np
 
+# this file does not work anymore
+
 convLayer = layers.ConvLayer(filters=3, kernel_size=(3,3), stride=1, padding=0)
 
 X = np.array([[[1, 1, 0, 1, 0, 0, 1, 0],
