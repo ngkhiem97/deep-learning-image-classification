@@ -96,13 +96,8 @@ def train_model(layers_, X_train, Y_train, X_val, Y_val, filename="default", lea
         epoch += 1
         pbar.update(1)
 
-    # Accuracies
-    Yhat_train = forward(layers_, X_train)   
-    accuracy_train = (Y_train.argmax(axis=1) == Yhat_train.argmax(axis=1)).mean() * 100
-    Yhat_valid = forward(layers_, X_val)   
-    accuracy_valid = (Y_val.argmax(axis=1) == Yhat_valid.argmax(axis=1)).mean() * 100
-    print("Final training accuracy: %d" % accuracy_train, "\nFinal validation accuracy: %f" %accuracy_valid)
-
+    calculate_accuracy(X_train, Y_train, layers_, type = "Training")
+    calculate_accuracy(X_val, Y_val, layers_, type = "Validation")
     pbar.close()
 
     # plot log loss
@@ -113,3 +108,8 @@ def train_model(layers_, X_train, Y_train, X_val, Y_val, filename="default", lea
     plt.legend()
     plt.savefig(f'{filename}.png')
     plt.clf()
+
+def calculate_accuracy(X, Y, layers, type = "Training"):
+    Yhat = forward(layers, X)
+    accuracy = (Y.argmax(axis=1) == Yhat.argmax(axis=1)).mean() * 100
+    print(f"{type} accuracy: {accuracy}")

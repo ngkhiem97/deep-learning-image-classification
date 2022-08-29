@@ -130,7 +130,7 @@ class TanhLayer(Layer):
         return np.eye(len(self.getPrevOut()[0])) * diag[:, np.newaxis]
 
 class FullyConnectedLayer(Layer):
-    def __init__(self, sizeIn, sizeOut, xavier_init = False, he_init = False):
+    def __init__(self, sizeIn, sizeOut, xavier_init = True, he_init = False):
         super().__init__()
         if xavier_init:
             self.xavier_init(sizeIn, sizeOut)
