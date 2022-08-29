@@ -38,7 +38,7 @@ convLayer1 = layers.Conv2DLayer(filters=3, kernel_size=(3, 3), stride=1, padding
 tanhLayer1 = layers.TanhLayer()
 poolingLayer1 = layers.PoolingLayer(2, 2)
 convLayer2 = layers.Conv3DLayer(filters=8, kernel_size=(3, 3), stride=1, padding=0)
-reluLayer2 = layers.ReluLayer()
+tanhLayer2 = layers.TanhLayer()
 poolingLayer2 = layers.PoolingLayer(2, 2)
 flattenLayer = layers.FlattenLayer()
 fcLayer3 = layers.FullyConnectedLayer(864, 60, xavier_init = True)
