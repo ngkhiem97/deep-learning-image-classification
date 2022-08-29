@@ -37,7 +37,7 @@ lenet = [convLayer1, tanhLayer1, poolingLayer1,
          fcLayer4, dropoutLayer4, tanhLayer4, 
          fcLayer5, softmaxLayer, crossEntropyLoss]
 
-util.train_model(lenet, X_train, Y_train_encoded, X_test, Y_test_encoded, "lenet_xavier", 
+util.train_model(lenet, X_train, Y_train_encoded, X_test, Y_test_encoded, "lenet", 
                  learning_rate = 0.01, 
                  max_epochs = 20, 
                  batch_size = 10,
