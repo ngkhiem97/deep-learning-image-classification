@@ -38,49 +38,9 @@ lenet = [convLayer1, tanhLayer1, poolingLayer1,
          fcLayer4, dropoutLayer4, tanhLayer4, 
          fcLayer5, softmaxLayer, crossEntropyLoss]
 
-util.train_model(lenet, X_train[:100], Y_train_encoded[:100], X_test[:10], Y_test_encoded[:10], "lenet_xavier", 
+util.train_model(lenet, X_train, Y_train_encoded, X_test, Y_test_encoded, "lenet_xavier", 
                  learning_rate = 0.01, 
                  max_epochs = 20, 
                  batch_size = 10,
                  condition = 10e-10,
                  skip_first_layer=False)
-
-# h = util.forward(lenet, X_train[:2])
-# h = lenet[-1].forward(h)
-# print(h.shape)
-
-# h = convLayer1.forward(X_train[:1])
-# h = tanhLayer1.forward(h)
-# h = poolingLayer1.forward(h)
-# h = convLayer2.forward(h)
-# h = reluLayer2.forward(h)
-# h = poolingLayer2.forward(h)
-# h = flattenLayer.forward(h)
-# h = fcLayer3.forward(h)
-# h = dropoutLayer3.forward(h)
-# h = tanhLayer3.forward(h)
-# h = fcLayer4.forward(h)
-# h = dropoutLayer4.forward(h)
-# h = tanhLayer4.forward(h)
-# h = fcLayer5.forward(h)
-# h = softmaxLayer.forward(h)
-
-# grad = crossEntropyLoss.gradient(Y_train_encoded[:1], h)
-# grad = softmaxLayer.backward(grad)
-# grad = fcLayer5.backward(grad)
-# grad = tanhLayer4.backward(grad)
-# grad = dropoutLayer4.backward(grad)
-# grad = fcLayer4.backward(grad)
-# grad = tanhLayer3.backward(grad)
-# grad = dropoutLayer3.backward(grad)
-# grad = fcLayer3.backward(grad)
-# grad = flattenLayer.backward(grad)
-# grad = poolingLayer2.backward(grad)
-# grad = reluLayer2.backward(grad)
-# convLayer2.updateKernel(grad, 1, 0.1)
-# grad = convLayer2.backward(grad)
-# grad = poolingLayer1.backward(grad)
-# grad = tanhLayer1.backward(grad)
-# convLayer1.updateKernel(grad, 1, 0.1)
-
-# print(grad.shape)

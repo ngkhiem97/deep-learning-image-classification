@@ -82,6 +82,8 @@ def train_model(layers_, X_train, Y_train, X_val, Y_val, filename="default", lea
                 grad = newGrad
 
             pbar.update(1)
+        
+        pbar.close()
 
         # evaluate loss for training
         h = forward(layers_, X_train)
