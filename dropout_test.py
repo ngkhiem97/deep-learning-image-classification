@@ -98,7 +98,7 @@ def trainModel(
     epochs = 1 
     loss_delta = 1
 
-    pbar = tqdm(total = epochs_lim + 1, desc='Training Model', unit="Epoch")
+    pbar = tqdm(total = epochs_lim, desc='Training Model', unit="Epoch")
     while(epochs <= epochs_lim):
         if (loss_delta > loss_lim):
             #break
@@ -178,7 +178,7 @@ def plotMetrics(train_loss, test_loss, title= "Graph"):
     plt.show()
 
 
-def MLP():
+def MLP(epochs_lim, layer_1_size = 512, layer_2_size = 64):
     x_slice = slice(0, -10)
     y_slice = slice(-10, None)
     x, y, label_names = load_data()
@@ -187,17 +187,17 @@ def MLP():
     data = np.concatenate((x, y_OHE), axis =1)
 
     L1 = InputLayer(x)
-    L2 = FullyConnectedLayer(x.shape[1], 512, Adam=True)
+    L2 = FullyConnectedLayer(x.shape[1], layer_1_size, xavier_init=True, Adam=True)
     L3 = ReluLayer()
     #L4 = DropoutLayer(0.8)
-    L5 = FullyConnectedLayer(512, 64, Adam=True)
+    L5 = FullyConnectedLayer(layer_1_size, layer_2_size, xavier_init=True, Adam=True)
     L6 = ReluLayer()
-    #L7 = DropoutLayer(0.5)
-    L8 = FullyConnectedLayer(64, y_OHE.shape[1], Adam=True)
+    L7 = DropoutLayer(0.4)
+    L8 = FullyConnectedLayer(layer_2_size, y_OHE.shape[1], xavier_init=True, Adam=True)
     L9 = SoftmaxLayer()
     L10 = CrossEntropy()
 
-    layers = [L1, L2, L3, L5, L6, L8, L9, L10]
+    layers = [L1, L2, L3, L5, L6, L7 ,L8, L9, L10]
     train, test = test_split(data)
     
     layers, train_metrics, test_metrics = trainModel(
@@ -206,7 +206,7 @@ def MLP():
         x_slice, 
         y_slice, 
         layers, 
-        epochs_lim=60, 
+        epochs_lim, 
         lr=0.0001, 
         loss_lim=-1, 
         batch_num=59
@@ -265,7 +265,18 @@ if __name__ == '__main__':
     if len(sys.argv) > 1:
         cmd = sys.argv[1]
         if cmd == '1':
-            MLP()
+            #MLP(50, layer_1_size = 512, layer_2_size = 64)
+            # Training accuracy: 0.4689 Testing accuracy: 0.4152
+
+            #MLP(50, layer_1_size = 512 * 2 , layer_2_size = 64)
+            # Training accuracy: 0.4941 Testing accuracy: 0.4236
+
+            #MLP(50, layer_1_size = 512 * 2 * 2, layer_2_size = 64)
+            # Training accuracy: 0.5269 Testing accuracy: 0.4335
+
+            MLP(50, layer_1_size = 1024, layer_2_size = 128*2)
+            # Training accuracy: 0.4024 Testing accuracy: 0.3600
+
         elif cmd == '2':
             HW5()
         elif cmd == '3':

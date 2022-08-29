@@ -137,10 +137,12 @@ class TanhLayer(Layer):
         return gradOut
 
 class FullyConnectedLayer(Layer):
-    def __init__(self, sizeIn, sizeOut, xavier_init = True):
+    def __init__(self, sizeIn, sizeOut, xavier_init = True, he_init = False):
         super().__init__()
         if xavier_init:
             self.xavier_init(sizeIn, sizeOut)
+        elif he_init:
+            self.he_init(sizeIn, sizeOut)
         else:
             self.weights = np.random.uniform(-0.001, 0.001, (sizeOut, sizeIn)).T
             self.biases = np.random.uniform(-0.001, 0.001, (1, sizeOut))
@@ -159,6 +161,13 @@ class FullyConnectedLayer(Layer):
         bound = np.sqrt(6/(sizeIn+sizeOut))
         self.weights = np.random.uniform(-bound, bound, (sizeOut, sizeIn)).T
         self.biases = np.random.uniform(-bound, bound, (1, sizeOut))
+
+    def he_init(self, sizeIn, sizeOut):
+        mean = 0
+        std_dev1 = np.sqrt(2/(sizeIn))
+        std_dev2 = np.sqrt(2/1)
+        self.weights = np.random.normal(mean, std_dev1, (sizeIn, sizeOut))
+        self.biases = np.random.normal(mean, std_dev2, (1, sizeOut))
 
     def getWeights(self):
         return self.weights

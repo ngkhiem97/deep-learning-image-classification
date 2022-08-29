@@ -15,9 +15,7 @@ X_train, X_test, Y_train, Y_test = train_test_split(cifar10_grey_images, cifar10
 Y_train_encoded = util.one_hot_array(Y_train, 10)
 Y_test_encoded = util.one_hot_array(Y_test, 10)
 
-# util.show_image(X_train[0], Y_train[0], cifar10_label_names)
-
-convLayer1 = layers.Conv2DLayer(filters=3, kernel_size=(3, 3), stride=1, padding=0)
+convLayer1 = layers.Conv2DLayer(filters=6, kernel_size=(5, 5), stride=1, padding=0)
 tanhLayer1 = layers.TanhLayer()
 poolingLayer1 = layers.PoolingLayer(2, 2)
 convLayer2 = layers.Conv3DLayer(filters=16, kernel_size=(5, 5), stride=1, padding=0)
@@ -27,23 +25,23 @@ flattenLayer = layers.FlattenLayer()
 fcLayer3 = layers.FullyConnectedLayer(2400, 120, xavier_init = True)
 dropoutLayer3 = layers.DropoutLayer(0.8)
 tanhLayer3 = layers.TanhLayer()
-fcLayer4 = layers.FullyConnectedLayer(675, 42, xavier_init = True)
+fcLayer4 = layers.FullyConnectedLayer(120, 84, xavier_init = True)
 dropoutLayer4 = layers.DropoutLayer(0.8)
 tanhLayer4 = layers.TanhLayer()
-fcLayer5 = layers.FullyConnectedLayer(42, 10, xavier_init = True)
+fcLayer5 = layers.FullyConnectedLayer(84, 10, xavier_init = True)
 softmaxLayer = layers.SoftmaxLayer()
 crossEntropyLoss = layers.CrossEntropy()
 
 lenet = [convLayer1, tanhLayer1, poolingLayer1, flattenLayer, 
-        #  convLayer2, reluLayer2, poolingLayer2, 
-        #  fcLayer3, dropoutLayer3, tanhLayer3, 
+         convLayer2, reluLayer2, poolingLayer2, 
+         fcLayer3, dropoutLayer3, tanhLayer3, 
          fcLayer4, dropoutLayer4, tanhLayer4, 
          fcLayer5, softmaxLayer, crossEntropyLoss]
 
-util.train_model(lenet, X_train[:1000], Y_train_encoded[:1000], X_test[:100], Y_test_encoded[:100], "lenet", 
-                 learning_rate = 0.1, 
-                 max_epochs = 100, 
-                 batch_size = 100,
+util.train_model(lenet, X_train, Y_train_encoded, X_test, Y_test_encoded, "lenet_xavier", 
+                 learning_rate = 0.01, 
+                 max_epochs = 10, 
+                 batch_size = 1000,
                  condition = 10e-10,
                  skip_first_layer=False)
 

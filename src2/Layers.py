@@ -88,7 +88,7 @@ class FullyConnectedLayer(Layer):
         self.delt = math.pow(10,-8)
         
         if (xavier_init):
-            xav = np.sqrt(
+            xav = 0.1 * np.sqrt(
                 np.divide(6, sizeIn + sizeOut)
             )
             self.W = np.random.uniform(low=-xav, high=xav, size=(sizeIn, sizeOut))

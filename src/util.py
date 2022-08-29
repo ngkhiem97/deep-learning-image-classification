@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 import cv2
+from tqdm import tqdm
 import numpy as np
 import src.layers as layers
 
@@ -49,6 +50,8 @@ def train_model(layers_, X_train, Y_train, X_val, Y_val, filename="default", lea
     loss_train = []
     loss_val = []
     batch_size = 25
+
+    pbar = tqdm(total = max_epochs, desc='Training Model', unit="Epoch")
     while (epoch < max_epochs):
         # shuffle data
         indices = np.random.permutation(X_train.shape[0])
@@ -81,9 +84,6 @@ def train_model(layers_, X_train, Y_train, X_val, Y_val, filename="default", lea
         # evaluate loss for training
         h = forward(layers_, X_train)
         eval = layers_[-1].eval(Y_train, h)
-        h_decoded = decode(h)
-        Y_train_decoded = decode(Y_train)
-        accuracy_train = accuracy(Y_train_decoded, h_decoded)
         loss_train.append(eval)
 
         # finish training if change in loss is too small
@@ -94,13 +94,17 @@ def train_model(layers_, X_train, Y_train, X_val, Y_val, filename="default", lea
         # evaluate loss for validation
         h = forward(layers_, X_val)
         val_eval = layers_[-1].eval(Y_val, h)
-        h_decoded = decode(h)
-        Y_val_decoded = decode(Y_val)
-        accuracy_test = accuracy(Y_val_decoded, h_decoded)
         loss_val.append(val_eval)
 
-        print("Epoch: {}, Train Loss: {}, Val Loss: {}, Train Accuracy: {}, Val Accuracy: {}".format(epoch, eval, val_eval, accuracy_train, accuracy_test))
+        # pbar.set_description(f"Validation loss: {val_eval}")
+
+        # print("Epoch: %d, Train Loss: %f, Val Loss: %f" % (epoch, eval, val_eval))
         epoch += 1
+        pbar.update(1)
+
+    calculate_accuracy(X_train, Y_train, layers_, type = "Training")
+    calculate_accuracy(X_val, Y_val, layers_, type = "Validation")
+    pbar.close()
 
     # plot log loss
     plt.xlabel("Epoch")
@@ -110,3 +114,8 @@ def train_model(layers_, X_train, Y_train, X_val, Y_val, filename="default", lea
     plt.legend()
     plt.savefig(f'{filename}.png')
     plt.clf()
+
+def calculate_accuracy(X, Y, layers, type = "Training"):
+    Yhat = forward(layers, X)
+    accuracy = (Y.argmax(axis=1) == Yhat.argmax(axis=1)).mean() * 100
+    print(f"{type} accuracy: {accuracy}")
