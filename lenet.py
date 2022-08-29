@@ -34,20 +34,20 @@ Y_test_encoded = util.one_hot_array(Y_test, 10)
 print("Size of training labels:", Y_train_encoded.shape)
 print("Size of validation labels:", Y_test_encoded.shape)
 
-convLayer1 = layers.Conv2DLayer(filters=6, kernel_size=(5, 5), stride=1, padding=0)
+convLayer1 = layers.Conv2DLayer(filters=3, kernel_size=(3, 3), stride=1, padding=0)
 tanhLayer1 = layers.TanhLayer()
 poolingLayer1 = layers.PoolingLayer(2, 2)
-convLayer2 = layers.Conv3DLayer(filters=16, kernel_size=(5, 5), stride=1, padding=0)
+convLayer2 = layers.Conv3DLayer(filters=8, kernel_size=(3, 3), stride=1, padding=0)
 reluLayer2 = layers.ReluLayer()
 poolingLayer2 = layers.PoolingLayer(2, 2)
 flattenLayer = layers.FlattenLayer()
-fcLayer3 = layers.FullyConnectedLayer(2400, 120, xavier_init = True)
+fcLayer3 = layers.FullyConnectedLayer(864, 60, xavier_init = True)
 dropoutLayer3 = layers.DropoutLayer(0.8)
 tanhLayer3 = layers.TanhLayer()
-fcLayer4 = layers.FullyConnectedLayer(120, 84, xavier_init = True)
+fcLayer4 = layers.FullyConnectedLayer(60, 42, xavier_init = True)
 dropoutLayer4 = layers.DropoutLayer(0.8)
 tanhLayer4 = layers.TanhLayer()
-fcLayer5 = layers.FullyConnectedLayer(84, 10, xavier_init = True)
+fcLayer5 = layers.FullyConnectedLayer(42, 10, xavier_init = True)
 softmaxLayer = layers.SoftmaxLayer()
 crossEntropyLoss = layers.CrossEntropy()
 lenet = [convLayer1, tanhLayer1, poolingLayer1,
@@ -57,8 +57,8 @@ lenet = [convLayer1, tanhLayer1, poolingLayer1,
          fcLayer5, softmaxLayer, crossEntropyLoss]
 
 util.train_model(lenet, X_train, Y_train_encoded, X_test, Y_test_encoded, "lenet", 
-                 learning_rate = 0.01, 
+                 learning_rate = 0.001, 
                  max_epochs = 6, 
-                 batch_size = 50,
+                 batch_size = 20,
                  condition = 10e-10,
                  skip_first_layer=False)
