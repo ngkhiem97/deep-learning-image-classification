@@ -51,7 +51,7 @@ fcLayer5 = layers.FullyConnectedLayer(42, 10, xavier_init = True)
 softmaxLayer = layers.SoftmaxLayer()
 crossEntropyLoss = layers.CrossEntropy()
 lenet = [convLayer1, tanhLayer1, poolingLayer1,
-         convLayer2, reluLayer2, poolingLayer2, flattenLayer, 
+         convLayer2, tanhLayer2, poolingLayer2, flattenLayer, 
          fcLayer3, dropoutLayer3, tanhLayer3, 
          fcLayer4, dropoutLayer4, tanhLayer4, 
          fcLayer5, softmaxLayer, crossEntropyLoss]
