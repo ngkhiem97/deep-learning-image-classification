@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
 import cv2
-import tqdm
+from tqdm import tqdm
 import numpy as np
 import src.layers as layers
 
@@ -95,6 +95,14 @@ def train_model(layers_, X_train, Y_train, X_val, Y_val, filename="default", lea
         # print("Epoch: %d, Train Loss: %f, Val Loss: %f" % (epoch, eval, val_eval))
         epoch += 1
         pbar.update(1)
+
+    # Accuracies
+    Yhat_train = forward(layers_, X_train)   
+    accuracy_train = (Y_train.argmax(axis=1) == Yhat_train.argmax(axis=1)).mean() * 100
+    Yhat_valid = forward(layers_, X_val)   
+    accuracy_valid = (Y_val.argmax(axis=1) == Yhat_valid.argmax(axis=1)).mean() * 100
+    print("Final training accuracy: %d" % accuracy_train, "\nFinal validation accuracy: %f" %accuracy_valid)
+
     pbar.close()
 
     # plot log loss
