@@ -101,8 +101,10 @@ def trainModel(
 
 
     # loss = 10000
-    train_metrics = []
-    test_metrics = []
+    train_loss_ls = []
+    test_loss_ls = []
+    train_acc_ls = []
+    test_acc_ls = []
 
     epoch = 1 
     loss_delta = 1
@@ -134,25 +136,28 @@ def trainModel(
         x_train = x_train_list[0]
         y_train = y_train_list[0]
         y_train_hat = fowardProp(x_train, layers)
-
         train_loss = layers[-1].eval(y_train, y_train_hat)
+        train_loss_ls.append(train_loss)
+        train_acc = model_Acc(y_train, y_train_hat)
+        train_acc_ls.append(train_acc)
 
-        train_metrics.append(train_loss)
-
+        
         y_test_hat = fowardProp(x_test, layers)
 
         test_loss = layers[-1].eval(y_test, y_test_hat)
-        test_metrics.append(test_loss)
+        test_loss_ls.append(test_loss)
+        test_acc = model_Acc(y_test, y_test_hat, type = "Testing")
+        test_acc_ls.append(test_acc)
      
 
         epoch += 1
         pbar.update(1)
     pbar.close()
 
-    # Final Accuracies
-    model_Acc(y_train, y_train_hat,type = "Training")
-    model_Acc(y_test, y_test_hat, type = "Testing")
-    return layers, train_metrics, test_metrics
+    # # Final Accuracies
+    # model_Acc(y_train, y_train_hat,type = "Training")
+    # model_Acc(y_test, y_test_hat, type = "Testing")
+    return layers, train_loss_ls, test_loss_ls, train_acc_ls, test_acc_ls
 
 
 def model_Acc(y, y_hat, type = "Training"):
@@ -163,14 +168,15 @@ def model_Acc(y, y_hat, type = "Training"):
         acc += y[i,np.argmax(y_hat[i])]
 
     acc = acc / len(y)
-    print(f"{type} accuracy: {acc}")
+    # print(f"{type} accuracy: {acc}")
+    return acc
 
-def plotMetrics(train_loss, test_loss, title= "Graph"):
+def plotMetrics(train_loss, test_loss,y_label, title= "Graph"):
     plt.plot(train_loss, '-x', label="Train")
     plt.plot(test_loss, '-x', label="Test")
     plt.legend(loc="upper right")
     plt.xlabel('epoch')
-    plt.ylabel('Cross entropy')
+    plt.ylabel(y_label)
     plt.title(title)
     plt.show()
 
@@ -190,15 +196,15 @@ def MLP(epochs_lim, layer_1_size = 512, layer_2_size = 64):
     #L4 = DropoutLayer(0.8)
     L5 = FullyConnectedLayer(layer_1_size, layer_2_size, xavier_init=True, Adam=True)
     L6 = ReluLayer()
-    L7 = DropoutLayer(0.4)
+    # L7 = DropoutLayer(0.4)
     L8 = FullyConnectedLayer(layer_2_size, 10, xavier_init=True, Adam=True)
     L9 = SoftmaxLayer()
     L10 = CrossEntropy()
 
-    layers = [L1, L2, L3, L5, L6, L7 ,L8, L9, L10]
+    layers = [L1, L2, L3, L5, L6,L8, L9, L10]
     # train, test = test_split(data)
     
-    layers, train_metrics, test_metrics = trainModel(
+    layers, train_loss_ls, test_loss_ls, train_acc_ls, test_acc_ls = trainModel(
         x_train_list, 
         y_train_list_OHE,
         x_test,
@@ -207,12 +213,14 @@ def MLP(epochs_lim, layer_1_size = 512, layer_2_size = 64):
         epochs_lim, 
         lr=0.0001, 
         loss_lim=-1, 
-        batch_size=2000
+        batch_size=1000
     )
-        
-    plotMetrics(train_metrics, test_metrics)
+    print(f"Final Training Accuracy: {train_acc_ls[-1]}")
+    print(f"Final Testing Accuracy: {test_acc_ls[-1]}")
+    plotMetrics(train_loss_ls, test_loss_ls, 'Cross Entropy', title = 'Cross Entropy')
+    plotMetrics(train_acc_ls, test_acc_ls, 'Accuracy', title = 'Accuracy')
 
-    pass
+    # pass
 
 
 if __name__ == '__main__':
@@ -220,17 +228,33 @@ if __name__ == '__main__':
     if len(sys.argv) > 1:
         cmd = sys.argv[1]
         if cmd == '1':
-            #MLP(50, layer_1_size = 512, layer_2_size = 64)
-            # Training accuracy: 0.4689 Testing accuracy: 0.4152
+            #========== TRAINING ON ONLY BATCH 1 =============
+            # MLP(14, layer_1_size = 512, layer_2_size = 64)
+            # Batch 1: Training accuracy: 0.4689 Testing accuracy: 0.4152
 
             #MLP(50, layer_1_size = 512 * 2 , layer_2_size = 64)
             # Training accuracy: 0.4941 Testing accuracy: 0.4236
 
-            MLP(50, layer_1_size = 512 * 2 * 2, layer_2_size = 64)
+            # MLP(14, layer_1_size = 512 * 2 * 2, layer_2_size = 64)
             # Training accuracy: 0.5269 Testing accuracy: 0.4335
+            # All batches: train: 0.449, test 0.382
 
             # MLP(50, layer_1_size = 1024, layer_2_size = 128*2)
             # Training accuracy: 0.4024 Testing accuracy: 0.3600
+
+            #========== TRAINING ON ALL BATCHES ==============
+            # MLP(14, layer_1_size = 512, layer_2_size = 64)
+            # batch_size = 2000; training 0.438; testing 0.3807
+                # batch_size = 2000; Without dropout layer: training 0.598; Testing 0.411
+            
+            # MLP(14, layer_1_size = 512 * 2 * 2, layer_2_size = 64)
+            # batch_size = 2000; train: 0.449, test 0.382
+
+            MLP(14, layer_1_size = 1024, layer_2_size = 96)
+            # without dropout layers; batch_size = 2000; overfitting; Testing 0.728 Training 0.4197
+            
+
+
 
         elif cmd == '2':
             # HW5()
