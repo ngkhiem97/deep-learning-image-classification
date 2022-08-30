@@ -201,7 +201,7 @@ def MLP(epochs_lim, layer_1_size = 512, layer_2_size = 64):
     L9 = SoftmaxLayer()
     L10 = CrossEntropy()
 
-    layers = [L1, L2, L3, L5, L6,L8, L9, L10]
+    layers = [L1, L2, L3, L5, L6, L8, L9, L10]
     # train, test = test_split(data)
     
     layers, train_loss_ls, test_loss_ls, train_acc_ls, test_acc_ls = trainModel(
@@ -213,7 +213,7 @@ def MLP(epochs_lim, layer_1_size = 512, layer_2_size = 64):
         epochs_lim, 
         lr=0.0001, 
         loss_lim=-1, 
-        batch_size=1000
+        batch_size=2000
     )
     print(f"Final Training Accuracy: {train_acc_ls[-1]}")
     print(f"Final Testing Accuracy: {test_acc_ls[-1]}")
@@ -237,7 +237,7 @@ if __name__ == '__main__':
 
             # MLP(14, layer_1_size = 512 * 2 * 2, layer_2_size = 64)
             # Training accuracy: 0.5269 Testing accuracy: 0.4335
-            # All batches: train: 0.449, test 0.382
+            
 
             # MLP(50, layer_1_size = 1024, layer_2_size = 128*2)
             # Training accuracy: 0.4024 Testing accuracy: 0.3600
@@ -250,9 +250,22 @@ if __name__ == '__main__':
             # MLP(14, layer_1_size = 512 * 2 * 2, layer_2_size = 64)
             # batch_size = 2000; train: 0.449, test 0.382
 
-            MLP(14, layer_1_size = 1024, layer_2_size = 96)
+            # MLP(14, layer_1_size = 1024, layer_2_size = 96)
             # without dropout layers; batch_size = 2000; overfitting; Testing 0.728 Training 0.4197
-            
+                # batch_size = 1000; overfiting; training 0.809, testing 0.4109
+                    #lr = 0.001; overfitting; training 0.7827 testing 0.3604
+            # with dropout, batch_size = 500; training 0.472; testing 0.399
+            #with dropout, batch_size 2000: training 0.5149; testing 0.4095
+
+
+            # MLP(14, layer_1_size = 300, layer_2_size = 50)
+            # with dropout layer: training 0.4067 testing 0.3676
+            # without dropout layer: training 0.5353 testing 0.4006
+
+            MLP(20, layer_1_size = 300, layer_2_size = 50)
+            # without dropout, batch_size = 2000, training 0.578 testing 0.4038
+
+
 
 
 
