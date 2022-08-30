@@ -286,11 +286,12 @@ class Conv2DLayer(Layer):
 
     def updateKernel(self, gradIn, epoch, learning_rate = 0.0001):
         for gradIn_i in gradIn:
-            self.updateKernel2D(gradIn_i, self.getPrevIn(), epoch, learning_rate)
+            for dataIn_i in self.getPrevIn():
+                for gradIn_i_kernel in gradIn_i:
+                    self.updateKernel2D(gradIn_i_kernel, dataIn_i, epoch, learning_rate)
 
     def updateKernel2D(self, gradIn, dataIn, epoch, learning_rate = 0.0001):
-        dJdw = np.array([[self.convolve2D(data, grad, padding=0, stride=1) for data in dataIn] for grad in gradIn])
-        dJdw = dJdw.reshape(-1, dJdw.shape[-2], dJdw.shape[-1]).sum(axis=0)
+        dJdw = np.array([self.convolve2D(dataIn, gradIn, padding=0, stride=1)])
         self.weights_s = self.decay_1 * self.weights_s + (1 - self.decay_1) * dJdw
         self.weights_r = self.decay_2 * self.weights_r + (1 - self.decay_2) * dJdw * dJdw
         weights_update = (self.weights_s/(1-self.decay_1**(epoch+1))) / (np.sqrt(self.weights_r/(1-self.decay_2**(epoch+1))) + self.stability)
@@ -324,7 +325,14 @@ class Conv3DLayer(Conv2DLayer):
     def updateKernel(self, gradIn, epoch, learning_rate = 0.0001):
         for gradIn_i in gradIn:
             for dataIn_i in self.getPrevIn():
-                self.updateKernel2D(gradIn_i, dataIn_i, epoch, learning_rate)
+                self.updateKernel3D(gradIn_i, dataIn_i, epoch, learning_rate)
+
+    def updateKernel3D(self, gradIn, dataIn, epoch, learning_rate = 0.0001):
+        for i in range(len(dataIn)):
+            for j in range(self.filters):
+                self.updateKernel2D(gradIn[i + j], dataIn[i], epoch, learning_rate)
+
+
 
 class PoolingLayer(Layer):
     def __init__(self, size, stride=1):

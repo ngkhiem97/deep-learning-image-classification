@@ -1,8 +1,6 @@
 import src.layers as layers
 import numpy as np
 
-# this file does not work anymore
-
 convLayer = layers.Conv2DLayer(filters=1, kernel_size=(3,3), stride=1, padding=0)
 
 X = np.array([[[1, 1, 0, 1, 0, 0, 1, 0],
@@ -92,11 +90,19 @@ e = np.array([[[[0, -2, 0, 0, 0, 0],
                [0, 0, 0, 0, 0, 0],
                [0, 0, 0, 0, -2, 0],
                [0, 6, 0, 0, 0, 0],
+               [0, 0, 0, 0, 0, 0]],
+               [[0, -2, 0, 0, 0, 0],
+               [0, 0, 0, 0, 0, 0],
+               [0, 0, 0, 0, 0, 0],
+               [0, 0, 0, 0, -2, 0],
+               [0, 6, 0, 0, 0, 0],
                [0, 0, 0, 0, 0, 0]]]])
 
 kernel_T = np.array([[2, 2, 1],
                    [-1, -1, 0],
                    [2, 0, 2]])
+
+print(f'Kernel backward: {np.transpose(kernel, (0, 2, 1))}')
 
 result = convLayer.backward(poolingResult)
 expectedResult = np.array([[[[ 0, -4,  0, -4,  0,  0,  0,  0],

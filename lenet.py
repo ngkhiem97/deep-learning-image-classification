@@ -34,31 +34,29 @@ Y_test_encoded = util.one_hot_array(Y_test, 10)
 print("Size of training labels:", Y_train_encoded.shape)
 print("Size of validation labels:", Y_test_encoded.shape)
 
-convLayer1 = layers.Conv2DLayer(filters=3, kernel_size=(3, 3), stride=1, padding=0)
+convLayer1 = layers.Conv2DLayer(filters=6, kernel_size=(3, 3), stride=1, padding=0)
 tanhLayer1 = layers.TanhLayer()
 poolingLayer1 = layers.PoolingLayer(2, 2)
-convLayer2 = layers.Conv3DLayer(filters=8, kernel_size=(3, 3), stride=1, padding=0)
-tanhLayer2 = layers.TanhLayer()
-poolingLayer2 = layers.PoolingLayer(2, 2)
+# convLayer2 = layers.Conv3DLayer(filters=16, kernel_size=(3, 3), stride=1, padding=0)
+# tanhLayer2 = layers.TanhLayer()
+# poolingLayer2 = layers.PoolingLayer(2, 2)
 flattenLayer = layers.FlattenLayer()
-fcLayer3 = layers.FullyConnectedLayer(864, 60, xavier_init = True)
-dropoutLayer3 = layers.DropoutLayer(0.8)
-tanhLayer3 = layers.TanhLayer()
-fcLayer4 = layers.FullyConnectedLayer(60, 42, xavier_init = True)
-dropoutLayer4 = layers.DropoutLayer(0.8)
+# fcLayer3 = layers.FullyConnectedLayer(3456, 120, xavier_init = True)
+# tanhLayer3 = layers.TanhLayer()
+fcLayer4 = layers.FullyConnectedLayer(1350, 84, xavier_init = True)
 tanhLayer4 = layers.TanhLayer()
-fcLayer5 = layers.FullyConnectedLayer(42, 10, xavier_init = True)
+fcLayer5 = layers.FullyConnectedLayer(84, 10, xavier_init = True)
 softmaxLayer = layers.SoftmaxLayer()
 crossEntropyLoss = layers.CrossEntropy()
-lenet = [convLayer1, tanhLayer1, poolingLayer1,
-         convLayer2, tanhLayer2, poolingLayer2, flattenLayer, 
-         fcLayer3, dropoutLayer3, tanhLayer3, 
-         fcLayer4, dropoutLayer4, tanhLayer4, 
+lenet = [convLayer1, tanhLayer1, poolingLayer1, flattenLayer, 
+        #  convLayer2, tanhLayer2, poolingLayer2, 
+        #  fcLayer3, tanhLayer3, 
+         fcLayer4, tanhLayer4, 
          fcLayer5, softmaxLayer, crossEntropyLoss]
 
-util.train_model(lenet, X_train, Y_train_encoded, X_test, Y_test_encoded, "lenet", 
-                 learning_rate = 0.001, 
-                 max_epochs = 6, 
+util.train_model(lenet, X_train[:100], Y_train_encoded[:100], X_test[:20], Y_test_encoded[:20], "lenet", 
+                 learning_rate = 0.01, 
+                 max_epochs = 10, 
                  batch_size = 20,
                  condition = 10e-10,
                  skip_first_layer=False)
