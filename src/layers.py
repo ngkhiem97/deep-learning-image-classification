@@ -282,7 +282,7 @@ class Conv2DLayer(Layer):
         return np.array([self.backward2D(grad_i, gradIn_i) for gradIn_i, grad_i in zip(gradIn, grad)])
         
     def backward2D(self, grad, gradIn):
-        return np.array([self.convolve2D(np.pad(gradIn_i, grad_i.shape[0]-1, constant_values=0), grad_i) for gradIn_i, grad_i in zip(gradIn, grad)])
+        return np.array([self.convolve2D(np.pad(gradIn_i, self.kernel_size[0]-1, constant_values=0), grad_i) for gradIn_i, grad_i in zip(gradIn, grad)])
 
     def updateKernel(self, gradIn, epoch, learning_rate = 0.0001):
         for gradIn_i in gradIn:
@@ -320,7 +320,7 @@ class Conv3DLayer(Conv2DLayer):
         return np.array([self.backward2D(grad_i, gradIn_i) for gradIn_i, grad_i in zip(gradIn, grad)])
         
     def backward2D(self, grad, gradIn):
-        return np.array([self.convolve2D(np.pad(gradIn_i, grad_i.shape[0]-1, constant_values=0), grad_i) for gradIn_i, grad_i in zip(gradIn, grad)])
+        return np.array([self.convolve2D(np.pad(gradIn_i, self.kernel_size[0]-1, constant_values=0), grad_i) for gradIn_i, grad_i in zip(gradIn, grad)])
 
     def updateKernel(self, gradIn, epoch, learning_rate = 0.0001):
         for gradIn_i in gradIn:
