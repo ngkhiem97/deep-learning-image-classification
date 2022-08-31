@@ -9,8 +9,9 @@ cifar10_label_names = util.unpickle("cifar-10-batches-py/batches.meta")[b'label_
 cifar10_grey_images, cifar10_labels = util.convert_images_to_gray(cifar10_data)
 cifar10_grey_images /= 255 # normalize to [0,1]
 
-cifar10_grey_images = cifar10_grey_images[:750]
-cifar10_labels = cifar10_labels[:750]
+cifar10_grey_images = cifar10_grey_images[:2500]
+cifar10_labels = cifar10_labels[:2500]
+
 #for i in range(2, 6, 1):
 #    cifar10_batch_data = util.unpickle(f"cifar-10-batches-py/data_batch_{i}")
 #    cifar10_batch_grey_images, cifar10_batch_labels = util.convert_images_to_gray(cifar10_batch_data)
@@ -23,8 +24,8 @@ cifa10_test = util.unpickle("cifar-10-batches-py/test_batch")
 cifa10_test_grey_images, cifa10_test_labels = util.convert_images_to_gray(cifa10_test)
 cifa10_test_grey_images /= 255 # normalize to [0,1]
 
-cifa10_test_grey_images = cifa10_test_grey_images[:100]
-cifa10_test_labels = cifa10_test_labels[:100]
+cifa10_test_grey_images = cifa10_test_grey_images[:300]
+cifa10_test_labels = cifa10_test_labels[:300]
 
 X_train = cifar10_grey_images.squeeze()
 Y_train = cifar10_labels

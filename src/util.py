@@ -106,7 +106,7 @@ def train_model(layers_, X_train, Y_train, X_val, Y_val, filename="default", lea
         loss_val.append(val_eval)
 
         # pbar.set_description(f"Validation loss: {val_eval}")
-        acc2 = model_Acc(Y_val[:200], Y_hat_val, None)
+        acc2 = model_Acc(Y_val, Y_hat_val, None)
         pbar1.set_description(f"Model Epochs (Train Acc: {format(acc1, '.4f')} Val Acc: {format(acc2, '.4f')}))")
         #print("Epoch: %d, Train Loss: %f, Val Loss: %f" % (epoch, eval, val_eval))
         #model_Acc(X_train, Y_train, layers_, "Training")
