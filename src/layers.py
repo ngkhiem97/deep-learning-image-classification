@@ -332,8 +332,6 @@ class Conv3DLayer(Conv2DLayer):
             for j in range(self.filters):
                 self.updateKernel2D(gradIn[i + j], dataIn[i], epoch, learning_rate)
 
-
-
 class PoolingLayer(Layer):
     def __init__(self, size, stride=1):
         super().__init__()

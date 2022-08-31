@@ -38,11 +38,15 @@ def decode(y_pred):
 def accuracy(y_true, y_pred):
     return np.mean(y_true == y_pred)
 
-def forward(layers, X):
+def forward(_layers, X, test=True, epoch=1):
     h = X
-    for layer in layers[:-1]:
-        h = layer.forward(h)
-    return h
+    for i in range(len(_layers)-1):
+        if(isinstance(_layers[i], layers.DropoutLayer)):
+            h = _layers[i].forward(h, test, epoch)
+        else:
+            h = _layers[i].forward(h)
+    y_hat = h
+    return y_hat
 
 def train_model(layers_, X_train, Y_train, X_val, Y_val, filename="default", learning_rate = 0.001, max_epochs = 100, batch_size = 25, condition = 10e-10, skip_first_layer = True):
     epoch = 0
@@ -50,22 +54,24 @@ def train_model(layers_, X_train, Y_train, X_val, Y_val, filename="default", lea
     loss_train = []
     loss_val = []
 
+    pbar1 = tqdm(total = max_epochs, desc='Model epochs', unit="epochs")
+    num_batches = int(X_train.shape[0] / batch_size)
+    pbar2 = tqdm(total = num_batches, desc='Model batches', unit="Batch")
     while (epoch < max_epochs):
         # shuffle data
         indices = np.random.permutation(X_train.shape[0])
         X_train = X_train[indices]
         Y_train = Y_train[indices]
-
-        # do batch training
-        num_batches = int(X_train.shape[0] / batch_size)
-        pbar = tqdm(total = num_batches, desc='Training Model', unit="Batch")
+        
+        pbar2.refresh()
+        pbar2.reset()
         for i in range(0, X_train.shape[0], batch_size):
             # get batch
             X_batch = X_train[i:i+batch_size]
             Y_batch = Y_train[i:i+batch_size]
 
             # perform forward propagation
-            h = forward(layers_, X_batch)
+            h = forward(layers_, X_batch, test=False, epoch=epoch)
 
             # perform backwards propagation, updating weights
             if skip_first_layer:
@@ -80,15 +86,14 @@ def train_model(layers_, X_train, Y_train, X_val, Y_val, filename="default", lea
                 if (isinstance(layer, layers.Conv2DLayer)) or (isinstance(layer, layers.Conv3DLayer)):
                     layer.updateKernel(grad, epoch, learning_rate)
                 grad = newGrad
-
-            pbar.update(1)
-        
-        pbar.close()
+            pbar2.update(1)
+            
 
         # evaluate loss for training
-        h = forward(layers_, X_train)
-        eval = layers_[-1].eval(Y_train, h)
+        Y_hat_train = forward(layers_, X_train)
+        eval = layers_[-1].eval(Y_train, Y_hat_train)
         loss_train.append(eval)
+        acc1 = model_Acc(Y_train, Y_hat_train, None)
 
         # finish training if change in loss is too small
         if (epoch > 2 and abs(eval - lastEval) < condition):
@@ -96,20 +101,24 @@ def train_model(layers_, X_train, Y_train, X_val, Y_val, filename="default", lea
         lastEval = eval
 
         # evaluate loss for validation
-        h = forward(layers_, X_val)
-        val_eval = layers_[-1].eval(Y_val, h)
+        Y_hat_val = forward(layers_, X_val)
+        val_eval = layers_[-1].eval(Y_val, Y_hat_val)
         loss_val.append(val_eval)
 
         # pbar.set_description(f"Validation loss: {val_eval}")
-
-        print("Epoch: %d, Train Loss: %f, Val Loss: %f" % (epoch, eval, val_eval))
-        calculate_accuracy(X_train, Y_train, layers_, "Training")
-        calculate_accuracy(X_val, Y_val, layers_, "Validation")
+        acc2 = model_Acc(Y_val[:200], Y_hat_val, None)
+        pbar1.set_description(f"Model Epochs (Train Acc: {format(acc1, '.4f')} Val Acc: {format(acc2, '.4f')}))")
+        #print("Epoch: %d, Train Loss: %f, Val Loss: %f" % (epoch, eval, val_eval))
+        #model_Acc(X_train, Y_train, layers_, "Training")
+        
         epoch += 1
+        pbar1.update(1)
+    pbar2.close()
+    pbar1.close()
 
     calculate_accuracy(X_train, Y_train, layers_, type = "Training")
     calculate_accuracy(X_val, Y_val, layers_, type = "Validation")
-    pbar.close()
+    
 
     # plot log loss
     plt.xlabel("Epoch")
@@ -121,6 +130,21 @@ def train_model(layers_, X_train, Y_train, X_val, Y_val, filename="default", lea
     plt.clf()
 
 def calculate_accuracy(X, Y, layers, type = "Training"):
-    Yhat = forward(layers, X)
-    accuracy = (Y.argmax(axis=1) == Yhat.argmax(axis=1)).mean() * 100
+    Y_hat = forward(layers, X)
+    accuracy = (Y.argmax(axis=1) == Y_hat.argmax(axis=1)).mean() * 100
     print(f"{type} accuracy: {accuracy}")
+
+def model_Acc(y, y_hat, type = "Training"):
+    acc = 0
+    for i in range(len(y)):
+        acc += y[i,np.argmax(y_hat[i])]
+        
+
+    acc = acc / len(y)
+
+    # type tells us if we want to print or not
+    if type is not None:
+        print(f"{type} accuracy: {acc}")
+        return None
+    else:
+        return acc
