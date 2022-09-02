@@ -10,6 +10,26 @@ def unpickle(file):
         dict = pickle.load(fo, encoding='bytes')
     return dict
 
+def load_training_data():
+    cifar10_data = unpickle("cifar-10-batches-py/data_batch_1")
+    cifar10_grey_images, cifar10_labels = convert_images_to_gray(cifar10_data)
+    cifar10_grey_images /= 255 # normalize to [0,1]
+
+    for i in range(2, 6, 1):
+        cifar10_batch_data = unpickle(f"cifar-10-batches-py/data_batch_{i}")
+        cifar10_batch_grey_images, cifar10_batch_labels = convert_images_to_gray(cifar10_batch_data)
+        cifar10_batch_grey_images /= 255 # normalize to [0,1]
+        cifar10_grey_images = np.concatenate((cifar10_grey_images, cifar10_batch_grey_images), axis=0)
+        cifar10_labels = np.concatenate((cifar10_labels, cifar10_batch_labels), axis=0)
+
+    return cifar10_grey_images, cifar10_labels
+
+def load_test_data():
+    cifar10_data = unpickle("cifar-10-batches-py/test_batch")
+    cifar10_grey_images, cifar10_labels = convert_images_to_gray(cifar10_data)
+    cifar10_grey_images /= 255 # normalize to [0,1]
+    return cifar10_grey_images, cifar10_labels
+
 def show_image(image, label, label_names):
     plt.imshow(image)
     plt.title(label_names[label].decode())
@@ -126,7 +146,7 @@ def train_model(layers_, X_train, Y_train, X_val, Y_val, filename="default", lea
     plt.plot(loss_train, label="Training Loss")
     plt.plot(loss_val, label="Validation Loss")
     plt.legend()
-    plt.savefig(f'{filename}.png')
+    plt.savefig(f'./lenet_figures/{filename}.png')
     plt.clf()
 
 def calculate_accuracy(X, Y, layers, type = "Training"):
