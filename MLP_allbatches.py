@@ -7,6 +7,8 @@ import pickle
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+import json
+import pickle
 # from lenet import Y_test
 from src2.Layers import FullyConnectedLayer, InputLayer, LinearLayer, ReluLayer, LogisticSigmoidLayer, TanhLayer, SoftmaxLayer, DropoutLayer, SquaredError, LogLoss, CrossEntropy
 
@@ -171,24 +173,61 @@ def model_Acc(y, y_hat, type = "Training"):
     # print(f"{type} accuracy: {acc}")
     return acc
 
-def plotMetrics(train_loss, test_loss,y_label, title= "Graph"):
-    plt.plot(train_loss, '-x', label="Train")
-    plt.plot(test_loss, '-x', label="Test")
-    plt.legend(loc="upper right")
-    plt.xlabel('epoch')
-    plt.ylabel(y_label)
-    plt.title(title)
+def plotMetrics(train_loss, test_loss, train_acc, test_acc, fig_name):
+    fig, axs = plt.subplots(2, 1,  figsize=(6, 8))
+    axs[0].plot(train_loss, label="Train" )
+    axs[0].plot(test_loss,label="Test" )
+    axs[0].set_ylabel('Cross Entropy')
+    axs[1].plot(train_acc, label = "Train")
+    axs[1].plot(test_acc, label = "Test")
+    axs[1].set_ylabel('Accuracy')
+    
+    for ax in axs.flat:
+        ax.set(xlabel='Epoch')
+    for ax in axs.flat:
+        ax.label_outer()
+    handles, labels = ax.get_legend_handles_labels()
+    fig.legend(handles, labels, loc= 'center')
+    plt.savefig(r'MLP_figures/'+fig_name+".png")
+
+def plotMetrics_dict(dict_, hp = 'LR'):
+    hp_ls = list(dict_.keys())
+    fig, axs = plt.subplots(2, 3,  figsize=(15, 10))
+
+    # layers, train_loss_ls, test_loss_ls, train_acc_ls, test_acc_ls
+    for i in range(len(hp_ls)):
+        axs[0,i].plot(dict_[hp_ls[i]][0], label="Train" )
+        axs[0,i].plot(dict_[hp_ls[i]][1],label="Test" )
+        axs[0,i].set_title(hp + '=' + str(hp_ls[i]))
+    
+    for i in range(len(hp_ls)):
+        axs[1,i].plot(dict_[hp_ls[i]][2], label="Train" )
+        axs[1, i].plot(dict_[hp_ls[i]][3],label="Test" )
+        # axs[i,0].set_title(hp + '=' + str(hp_ls[i]))
+    
+    for ax in axs.flat[:3]:
+        ax.set(xlabel='Epoch', ylabel='Cross Entropy Loss')
+        ax.set_ylim(1,2.5)
+    
+    for ax in axs.flat[3:]:
+        ax.set(xlabel='Epoch', ylabel='Accuracy')
+        ax.set_ylim(0.3,0.6)
+
+    for ax in axs.flat:
+        ax.label_outer()
+    handles, labels = ax.get_legend_handles_labels()
+    fig.legend(handles, labels, loc= 'lower center')
+
+    plt.savefig(r'MLP_figures/'+hp+".png")
     plt.show()
 
 
-def MLP(epochs_lim, layer_1_size = 512, layer_2_size = 64):
-    # x_slice = slice(0, -10)
-    # y_slice = slice(-10, None)
+def MLP(epochs_lim, layer_1_size , layer_2_size, model_name = 'MLP_Xavier001_50ep'):
+    print(model_name)
     x_train_list, y_train_list, x_test, y_test = load_data()
-    # print(len(x_train_list[0]), len(y_train_list[0]))
     y_train_list_OHE = [oneHotEncode(y) for y in y_train_list]
     y_test_OHE = oneHotEncode(y_test)
-    # data = np.concatenate((x, y_OHE), axis =1)
+
 
     L1 = InputLayer(x_train_list[0])
     L2 = FullyConnectedLayer(x_train_list[0].shape[1], layer_1_size, xavier_init=True, Adam=True)
@@ -196,14 +235,13 @@ def MLP(epochs_lim, layer_1_size = 512, layer_2_size = 64):
     #L4 = DropoutLayer(0.8)
     L5 = FullyConnectedLayer(layer_1_size, layer_2_size, xavier_init=True, Adam=True)
     L6 = ReluLayer()
-    # L7 = DropoutLayer(0.4)
+    L7 = DropoutLayer(0.6)
     L8 = FullyConnectedLayer(layer_2_size, 10, xavier_init=True, Adam=True)
     L9 = SoftmaxLayer()
     L10 = CrossEntropy()
 
-    layers = [L1, L2, L3, L5, L6, L8, L9, L10]
-    # train, test = test_split(data)
-    
+    layers = [L1, L2, L3, L5, L6,L7, L8, L9, L10]
+
     layers, train_loss_ls, test_loss_ls, train_acc_ls, test_acc_ls = trainModel(
         x_train_list, 
         y_train_list_OHE,
@@ -211,72 +249,20 @@ def MLP(epochs_lim, layer_1_size = 512, layer_2_size = 64):
         y_test_OHE,
         layers, 
         epochs_lim, 
-        lr=0.0001, 
+        lr = 0.0001, 
         loss_lim=-1, 
-        batch_size=2000
-    )
+        batch_size=2000)
+    model_result = [train_loss_ls, test_loss_ls, train_acc_ls, test_acc_ls]
+
+    with open(model_name, 'wb') as fp:
+        pickle.dump(model_result, fp)
     print(f"Final Training Accuracy: {train_acc_ls[-1]}")
     print(f"Final Testing Accuracy: {test_acc_ls[-1]}")
-    plotMetrics(train_loss_ls, test_loss_ls, 'Cross Entropy', title = 'Cross Entropy')
-    plotMetrics(train_acc_ls, test_acc_ls, 'Accuracy', title = 'Accuracy')
 
-    # pass
+    plotMetrics(train_loss_ls, test_loss_ls, train_acc_ls, test_acc_ls, fig_name = model_name)
 
+   
 
 if __name__ == '__main__':
+    MLP(50, layer_1_size = 1024, layer_2_size = 96) 
 
-    if len(sys.argv) > 1:
-        cmd = sys.argv[1]
-        if cmd == '1':
-            #========== TRAINING ON ONLY BATCH 1 =============
-            # MLP(14, layer_1_size = 512, layer_2_size = 64)
-            # Batch 1: Training accuracy: 0.4689 Testing accuracy: 0.4152
-
-            #MLP(50, layer_1_size = 512 * 2 , layer_2_size = 64)
-            # Training accuracy: 0.4941 Testing accuracy: 0.4236
-
-            # MLP(14, layer_1_size = 512 * 2 * 2, layer_2_size = 64)
-            # Training accuracy: 0.5269 Testing accuracy: 0.4335
-            
-
-            # MLP(50, layer_1_size = 1024, layer_2_size = 128*2)
-            # Training accuracy: 0.4024 Testing accuracy: 0.3600
-
-            #========== TRAINING ON ALL BATCHES ==============
-            # MLP(14, layer_1_size = 512, layer_2_size = 64)
-            # batch_size = 2000; training 0.438; testing 0.3807
-                # batch_size = 2000; Without dropout layer: training 0.598; Testing 0.411
-            
-            # MLP(14, layer_1_size = 512 * 2 * 2, layer_2_size = 64)
-            # batch_size = 2000; train: 0.449, test 0.382
-
-            # MLP(14, layer_1_size = 1024, layer_2_size = 96)
-            # without dropout layers; batch_size = 2000; overfitting; Testing 0.728 Training 0.4197
-                # batch_size = 1000; overfiting; training 0.809, testing 0.4109
-                    #lr = 0.001; overfitting; training 0.7827 testing 0.3604
-            # with dropout, batch_size = 500; training 0.472; testing 0.399
-            #with dropout, batch_size 2000: training 0.5149; testing 0.4095
-
-
-            # MLP(14, layer_1_size = 300, layer_2_size = 50)
-            # with dropout layer: training 0.4067 testing 0.3676
-            # without dropout layer: training 0.5353 testing 0.4006
-
-            MLP(20, layer_1_size = 300, layer_2_size = 50)
-            # without dropout, batch_size = 2000, training 0.578 testing 0.4038
-
-
-
-
-
-        elif cmd == '2':
-            # HW5()
-            pass
-        elif cmd == '3':
-            pass
-        elif cmd == '4':
-            pass
-
-    else:
-        MLP()
-        pass

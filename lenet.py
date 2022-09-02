@@ -50,15 +50,14 @@ fcLayer5 = layers.FullyConnectedLayer(84, 10, xavier_init = True)
 softmaxLayer = layers.SoftmaxLayer()
 crossEntropyLoss = layers.CrossEntropy()
 lenet = [convLayer1, tanhLayer1, poolingLayer1,
-<<<<<<< HEAD:lenet_dropout.py
-         convLayer2, tanhLayer2, poolingLayer2, flattenLayer, 
-         fcLayer3, dropoutLayer3, tanhLayer3, 
-         fcLayer4, dropoutLayer4, tanhLayer4, 
-         fcLayer5, softmaxLayer, crossEntropyLoss]
+        convLayer2, tanhLayer2, poolingLayer2, flattenLayer, 
+        fcLayer3, tanhLayer3, 
+        fcLayer4, tanhLayer4, 
+        fcLayer5, softmaxLayer, crossEntropyLoss]
 
-util.train_model(lenet, X_train[:1000], Y_train_encoded[:1000], X_test[:1000], Y_test_encoded[:1000], "lenet", 
+util.train_model(lenet, X_train, Y_train_encoded, X_test, Y_test_encoded, "lenet", 
                  learning_rate = 0.0001, 
-                 max_epochs = 50, 
+                 max_epochs = 5, 
                  batch_size = 1,
                  condition = 10e-10,
                  skip_first_layer=False)
