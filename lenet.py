@@ -9,23 +9,16 @@ cifar10_label_names = util.unpickle("cifar-10-batches-py/batches.meta")[b'label_
 cifar10_grey_images, cifar10_labels = util.convert_images_to_gray(cifar10_data)
 cifar10_grey_images /= 255 # normalize to [0,1]
 
-cifar10_grey_images = cifar10_grey_images[:2500]
-cifar10_labels = cifar10_labels[:2500]
-
-#for i in range(2, 6, 1):
-#    cifar10_batch_data = util.unpickle(f"cifar-10-batches-py/data_batch_{i}")
-#    cifar10_batch_grey_images, cifar10_batch_labels = util.convert_images_to_gray(cifar10_batch_data)
-#    cifar10_batch_grey_images /= 255 # normalize to [0,1]
-#    cifar10_grey_images = np.concatenate((cifar10_grey_images, cifar10_batch_grey_images), axis=0)
-#    cifar10_labels = np.concatenate((cifar10_labels, cifar10_batch_labels), axis=0)
-
+for i in range(2, 6, 1):
+    cifar10_batch_data = util.unpickle(f"cifar-10-batches-py/data_batch_{i}")
+    cifar10_batch_grey_images, cifar10_batch_labels = util.convert_images_to_gray(cifar10_batch_data)
+    cifar10_batch_grey_images /= 255 # normalize to [0,1]
+    cifar10_grey_images = np.concatenate((cifar10_grey_images, cifar10_batch_grey_images), axis=0)
+    cifar10_labels = np.concatenate((cifar10_labels, cifar10_batch_labels), axis=0)
 
 cifa10_test = util.unpickle("cifar-10-batches-py/test_batch")
 cifa10_test_grey_images, cifa10_test_labels = util.convert_images_to_gray(cifa10_test)
 cifa10_test_grey_images /= 255 # normalize to [0,1]
-
-cifa10_test_grey_images = cifa10_test_grey_images[:300]
-cifa10_test_labels = cifa10_test_labels[:300]
 
 X_train = cifar10_grey_images.squeeze()
 Y_train = cifar10_labels
@@ -40,52 +33,30 @@ print("Size of validation data:", X_test.shape)
 print("Size of training labels:", Y_train_encoded.shape)
 print("Size of validation labels:", Y_test_encoded.shape)
 
-
-model = 1
-if (model == 0):
-
-    convLayer1 = layers.Conv2DLayer(filters=6, kernel_size=(5, 5), stride=1)
-    tanhLayer1 = layers.TanhLayer()
-    poolingLayer1 = layers.PoolingLayer(2, 2)
-    convLayer2 = layers.Conv3DLayer(filters=16, kernel_size=(5, 5), stride=1)
-    tanhLayer2 = layers.TanhLayer()
-    poolingLayer2 = layers.PoolingLayer(2, 2)
-    flattenLayer = layers.FlattenLayer()
-    fcLayer3 = layers.FullyConnectedLayer(2400, 120, xavier_init = True)
-    tanhLayer3 = layers.TanhLayer()
-    fcLayer4 = layers.FullyConnectedLayer(120, 84, xavier_init = True)
-    tanhLayer4 = layers.TanhLayer()
-    fcLayer5 = layers.FullyConnectedLayer(84, 10, xavier_init = True)
-    softmaxLayer = layers.SoftmaxLayer()
-    crossEntropyLoss = layers.CrossEntropy()
-    lenet = [convLayer1, tanhLayer1, poolingLayer1,
-            convLayer2, tanhLayer2, poolingLayer2, flattenLayer, 
-            fcLayer3, tanhLayer3, 
-            fcLayer4, tanhLayer4, 
-            fcLayer5, softmaxLayer, crossEntropyLoss]
-else:
-    convLayer1 = layers.Conv2DLayer(filters=12, kernel_size=(5, 5), stride=1)
-    activeLayer1 = layers.TanhLayer()
-    poolingLayer1 = layers.PoolingLayer(2, 2)
-    convLayer2 = layers.Conv3DLayer(filters=24, kernel_size=(5, 5), stride=1)
-    activeLayer2 = layers.TanhLayer()
-    poolingLayer2 = layers.PoolingLayer(2, 2)
-    flattenLayer = layers.FlattenLayer()
-    fcLayer3 = layers.FullyConnectedLayer(7200, 640, xavier_init = True)
-    activeLayer4 = layers.ReluLayer()
-    dropoutLayer2 = layers.DropoutLayer(.5)
-    fcLayer4 = layers.FullyConnectedLayer(640, 10, xavier_init = True)
-    softmaxLayer = layers.SoftmaxLayer()
-    crossEntropyLoss = layers.CrossEntropy()
-    lenet = [convLayer1, activeLayer1, poolingLayer1,
-            convLayer2, activeLayer2, poolingLayer2,
-            flattenLayer, fcLayer3, activeLayer4, dropoutLayer2,
-            fcLayer4, softmaxLayer, crossEntropyLoss]
+convLayer1 = layers.Conv2DLayer(filters=6, kernel_size=(5, 5), stride=1)
+tanhLayer1 = layers.TanhLayer()
+poolingLayer1 = layers.PoolingLayer(2, 2)
+convLayer2 = layers.Conv3DLayer(filters=16, kernel_size=(5, 5), stride=1)
+tanhLayer2 = layers.TanhLayer()
+poolingLayer2 = layers.PoolingLayer(2, 2)
+flattenLayer = layers.FlattenLayer()
+fcLayer3 = layers.FullyConnectedLayer(2400, 120, xavier_init = True)
+tanhLayer3 = layers.TanhLayer()
+fcLayer4 = layers.FullyConnectedLayer(120, 84, xavier_init = True)
+tanhLayer4 = layers.TanhLayer()
+fcLayer5 = layers.FullyConnectedLayer(84, 10, xavier_init = True)
+softmaxLayer = layers.SoftmaxLayer()
+crossEntropyLoss = layers.CrossEntropy()
+lenet = [convLayer1, tanhLayer1, poolingLayer1,
+        convLayer2, tanhLayer2, poolingLayer2, flattenLayer, 
+        fcLayer3, tanhLayer3, 
+        fcLayer4, tanhLayer4, 
+        fcLayer5, softmaxLayer, crossEntropyLoss]
 
 
 util.train_model(lenet, X_train, Y_train_encoded, X_test, Y_test_encoded, "lenet", 
                  learning_rate = 0.0001, 
-                 max_epochs = 8, 
-                 batch_size = 5,
+                 max_epochs = 5, 
+                 batch_size = 1,
                  condition = 10e-10,
                  skip_first_layer=False)
