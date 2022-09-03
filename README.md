@@ -32,7 +32,7 @@ python3 mlp_allbatches.py
 ```
 
 The result is placed in the folder mlp_figures.  
-Note: in order to tune the hyper-parameters of MLP Model, one would need to change the value of the parameters in the script accordingly.
+Note: in order to tune the hyper-parameters of MLP Model, one would need to change the value of the parameters in the script accordingly in the MLP() method.
 
 ## Train and evaluate the Convolutional Neural Network (LeNet) Model 1
 
