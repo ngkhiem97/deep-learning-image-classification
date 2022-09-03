@@ -31,7 +31,7 @@ pip install -r requirements.txt
 python3 mlp_allbatches
 ```
 
-The result is placed in the folder mlp_figures.<br \>
+The result is placed in the folder mlp_figures.  
 Note: in order to tune the hyper-parameters of MLP Model, one would need to change the value of the parameters in the script accordingly.
 
 ## Train and evaluate the Convolutional Neural Network (LeNet) Model 1
