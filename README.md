@@ -28,7 +28,7 @@ pip install -r requirements.txt
 ## Train and evaluate the Multi-layer Perceptron Model
 
 ```bash
-python3 mlp_allbatches
+python3 mlp_allbatches.py
 ```
 
 The result is placed in the folder mlp_figures.  
