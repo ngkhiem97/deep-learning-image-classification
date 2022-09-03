@@ -12,6 +12,11 @@ Team member:
 | --- | --- | --- | --- | --- |
 | Email | mk3272@drexel.edu | ktn44@drexel.edu | thn44@drexel.edu | co449@drexel.edu |
 
+In this project, we implemented deep learning neural networks without using deep learning libraries to classify images of the CIFAR-10 data set. We used 2 deep learning architectures:
+
+- Multi-layer Perceptron Model
+- Convolutional Neural Network (LeNet)
+
 ## Install dependencies
 
 Python3 and Pip is required to install the dependencies.
