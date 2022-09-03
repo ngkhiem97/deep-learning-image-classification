@@ -31,13 +31,15 @@ pip install -r requirements.txt
 python3 mlp_allbatches
 ```
 
+The result is placed in the folder mlp_figures
+
 ## Train and evaluate the Convolutional Neural Network (LeNet) Model 1
 
 ```bash
 python3 lenet.py
 ```
 
-The result cross correlation vs epochs file (lenet_10000_defaultmodel.png) is placed in the folder lenet_figures
+The result is placed in the folder lenet_figures
 
 ## Train and evaluate the Convolutional Neural Network (LeNet) Model 2
 
@@ -45,4 +47,4 @@ The result cross correlation vs epochs file (lenet_10000_defaultmodel.png) is pl
 python3 lenet_dropout.py
 ```
 
-The result cross correlation vs epochs file (lenet_50000_defaultmodel.png) is placed in the folder lenet_figures
+The result is placed in the folder lenet_figures
